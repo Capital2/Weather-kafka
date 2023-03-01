@@ -1,6 +1,8 @@
 import urllib.parse
 import requests
+
 from api_exceptions import ApiServerException, LimitReachedException, ApiKeyNotWorkingException, MalformattedRequestException, ApiErrorException
+
 
 class OpenWeatherApi:
     def __init__(self, params) -> None:
@@ -24,6 +26,23 @@ class OpenWeatherApi:
             raise ApiErrorException()
 
 if __name__ == '__main__':
-    api = OpenWeatherApi()
-    r = api.get()
-    pass
+    from mock import patch
+    import configparser
+    import json
+    from mock import patch
+
+    # config = configparser.ConfigParser()
+    # config.read("config.cfg")
+    # keys = json.loads(config.get("Api","keys"))
+    
+    api = OpenWeatherApi(params = {
+            'id': 2467959,
+            'units': 'metric',
+            'appid': 'keys[0]'
+        })
+    with patch("requests.get") as mock_resp:
+            #creating the mock response
+            mock_resp.return_value.status_code = 500
+            mock_resp.return_value.ok = False
+            r = api.get()
+            print(r)
