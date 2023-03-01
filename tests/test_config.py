@@ -3,6 +3,7 @@ from mock import patch
 import configparser
 import json
 import os
+
 class TestConfig(unittest.TestCase):
 
     def setUp(self) -> None:
