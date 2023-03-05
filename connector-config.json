@@ -5,10 +5,9 @@
     "tasks.max": "10",
     "topics": "greetings",
     "contactPoints": "cassandra",
-    "port":"9042",
     "loadBalancing.localDc": "datacenter1",
-    "topic.greetings.weather.test.mapping": "id=key, name=value",
-    "topic.greetings.weather.test.consistencyLevel": "LOCAL_QUORUM" 
+    "topic.greetings.weather.tab.mapping": "name=value",
+    "topic.greetings.weather.tab.consistencyLevel": "LOCAL_QUORUM" 
   }
 }
 
