@@ -10,6 +10,10 @@ from OpenWeatherApi import OpenWeatherApi
 producer = KafkaProducer(bootstrap_servers='0.0.0.0:9092')
 config = configparser.ConfigParser()
 
+jsonpaylode = {
+    "hello": "hello2"
+}
+"""
 # load from config.ini
 config.read("config.cfg")
 keys = json.loads(config.get("Api","keys"))
@@ -21,6 +25,6 @@ api = OpenWeatherApi(params = {
         })
 
 r = api.get()
-
-producer.send('greetings', b'hello') # topic name is greetings
+"""
+producer.send('greetings', jsonpaylode) # topic name is greetings
 producer.close()

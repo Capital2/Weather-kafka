@@ -1,0 +1,14 @@
+{
+  "name": "datastax-connector",
+  "config": {
+    "connector.class": "com.datastax.oss.kafka.sink.CassandraSinkConnector",
+    "tasks.max": "10",
+    "topics": "greetings",
+    "contactPoints": "cassandra",
+    "port":"9042",
+    "loadBalancing.localDc": "datacenter1",
+    "topic.greetings.weather.test.mapping": "id=key, name=value",
+    "topic.greetings.weather.test.consistencyLevel": "LOCAL_QUORUM" 
+  }
+}
+
