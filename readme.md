@@ -1,13 +1,27 @@
 https://hub.docker.com/r/bitnami/kafka
 
-# zookeeper
+### zookeeper
+```bash
 sudo docker run -d --name zookeeper-server \
     -e ALLOW_ANONYMOUS_LOGIN=yes \
     bitnami/zookeeper:latest
+```
 
--start sink endPoint: curl -X POST -H "Content-Type: application/json" -d @connector-config.json "http://localhost:8083/connectors"
- restart sink : curl -X POST "http://worker_ip:rest_port/connectors/connector_name/restart"
- delete sink : curl -X DELETE "http://worker_ip:port/connectors/connector_name"
+### start sink endPoint: 
+ 
+ ```bash
+ curl -X POST -H "Content-Type: application/json" -d @connector-config.json "http://localhost:8083/connectors"
+ ```
+ 
+### restart sink : 
+```bash
+curl -X POST "http://worker_ip:rest_port/connectors/connector_name/restart"
+```
+
+### delete sink : 
+```bash
+curl -X DELETE "http://worker_ip:port/connectors/connector_name"
+```
 
 ## Todo
 create a volume for cassandra 
