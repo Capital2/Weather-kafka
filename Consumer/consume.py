@@ -5,3 +5,4 @@ for msg in consumer:
     print (msg)
 
 consumer.close()
+# test
