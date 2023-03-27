@@ -54,10 +54,8 @@ class ConnectorsManager:
                 "topics": topic_name,
                 "contactPoints": "cassandra",
                 "loadBalancing.localDc": "datacenter1",
-                # TODO: Map Kafka topic with its corresponding Cassandra table and columns
-                # Format: topicField1=CassandraColumnName1, topicField2=CassandraColumnName2, ...  
-                f"topic.{topic_name}.weather.tab.mapping": "name=value",
-                f"topic.{topic_name}.weather.tab.consistencyLevel": "LOCAL_QUORUM" 
+                f"topic.{topic_name}.weather.kafkasink.mapping": "data=value",
+                f"topic.{topic_name}.weather.kafkasink.consistencyLevel": "LOCAL_QUORUM" 
             }
         }
         response = requests.post(url=self.URL, json=data, headers=headers)
