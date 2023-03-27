@@ -44,7 +44,8 @@ services:
     #       memory: 3G
     hostname: cassandra
     container_name: cassandra
-  
+    volumes:
+      - ~/apps/cassandra:/var/lib/cassandra
 
   connect:
     image: datastax-connect:latest

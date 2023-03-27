@@ -99,4 +99,3 @@ class TopicsManager():
             raise Exception("delete topic command error")
         
         return self.list_topics()
-
