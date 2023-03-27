@@ -50,7 +50,7 @@ class ConnectorsManager:
             "name": connector_name,
             "config": {
                 "connector.class": "com.datastax.oss.kafka.sink.CassandraSinkConnector",
-                "tasks.max": "10",
+                "tasks.max": "1",
                 "topics": topic_name,
                 "contactPoints": "cassandra",
                 "loadBalancing.localDc": "datacenter1",
