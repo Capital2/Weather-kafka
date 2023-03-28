@@ -2,19 +2,18 @@ from kafka import KafkaProducer
 from OpenWeatherApi import OpenWeatherApi
 import json
 import time
-# read from config maybe
-BOOTSTRAP_SERVER = '0.0.0.0:9092'
+from multiprocessing import Manager
 
 class Producer:
     """A kafka prodcuer
         calls is an auto incremented variable that tracks the number of api calls.
         timeout is the timeout in between calls of the same city"""
-    def __init__(self, apikey, cityidlist, timeout=2.5) -> None:
+    def __init__(self, apikey, cityidlist, bootstrap_server='0.0.0.0:9092', timeout=2) -> None:
         self.calls = 0
         self.timeout = timeout
         self.apikey = apikey
         self.cityidlist = [] if cityidlist == None else cityidlist
-        self.producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVER)
+        self.producer = KafkaProducer(bootstrap_servers=bootstrap_server)
 
 
     def city_exists(self, cityid) -> bool:
@@ -22,7 +21,7 @@ class Producer:
         return cityid in self.cityidlist
     
     def produce(self):
-        """Produces. Not tested"""
+        """production loop"""
         try :
             # main producing loop
             while True:
@@ -39,6 +38,7 @@ class Producer:
                     # make it async
                     self.producer.send(str(cityid), jsonpaylode.content)
 
+                print('producing...')
                 time.sleep(self.timeout)
         except KeyboardInterrupt :
             print('bye')

@@ -1,7 +1,9 @@
 from ProductionManager import ProductionManager
+from time import sleep
 
-pm = ProductionManager("config.cfg")
+pm = ProductionManager([2467959])
 
-pm.add_city(2467959)
 while True:
+    print("prod")
+    sleep(1)
     pass
