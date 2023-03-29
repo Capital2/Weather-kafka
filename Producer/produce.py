@@ -24,5 +24,5 @@ api = OpenWeatherApi(params = {
 r = api.get()
 """
 jsonpaylode = json.dumps(jsonpaylode, indent=2).encode('utf-8')
-producer.send('greetings', jsonpaylode) # topic name is greetings
+producer.send('2467959', jsonpaylode) # topic name is greetings
 producer.close()
