@@ -1,0 +1,13 @@
+.alert-notifications-sidebar {
+    padding: 5px;
+    height: 100%;    
+}
+.alert-notifications-sidebar h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.alert-notifications-sidebar .alert-notifications {
+    position: absolute;
+    right: 10%;    
+}

@@ -18,9 +18,9 @@ import {
 } from "reactstrap";
 
 // core components
-import ExamplesNavbar from "components/Navbars/ExamplesNavbar.js";
+import Navbar from "components/Navbar/Navbar"
 import DashboardPageHeader from "components/Headers/DashboardPageHeader.js";
-import DemoFooter from "components/Footers/DemoFooter.js";
+import Footer from "components/Footer/Footer";
 
 // Async select
 import { SearchCity } from "./SearchCity";
@@ -29,9 +29,6 @@ import { SearchCity } from "./SearchCity";
 import { ReactWeatherWidget } from "../../components/Widgets";
 
 function DashboardPage() { 
-
- 
-
   document.documentElement.classList.remove("nav-open");
   React.useEffect(() => {
     document.body.classList.add("landing-page");
@@ -41,7 +38,7 @@ function DashboardPage() {
   });
   return (
     <>
-      <ExamplesNavbar />
+      <Navbar />
       <DashboardPageHeader />
       <div className="section profile-content">
         <Container>
@@ -93,7 +90,7 @@ function DashboardPage() {
           </Row>
         </Container>
       </div>
-      <DemoFooter />
+      <Footer />
     </>
   );
 }

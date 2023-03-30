@@ -1,4 +1,6 @@
+from ..exceptions.topics_exceptions import ExistantTopicName, AddTopicError
 import os
+
 
 class TopicsManager():   
     
@@ -23,7 +25,7 @@ class TopicsManager():
         with os.popen(cmd) as result:
             container = result.readlines()
             if len(container) == 0:
-                raise Exception("Container not found")
+                raise Exception("Container not found") # chroufa upodate this
             container = container[0].split(" ")[0]
             return container
 
@@ -43,7 +45,7 @@ class TopicsManager():
         with os.popen(list_topics_cmd) as list_topics_cmd_result:
             topics = list_topics_cmd_result.readlines()
             if len(topics) == 0:
-                raise Exception("Topics list error")
+                raise Exception("Topics list error") #hamma update this
             
             topics = set(map(lambda topic: topic.replace('\n', ''), topics))
             
@@ -66,11 +68,11 @@ class TopicsManager():
 
         create_topic_cmd = f"docker exec -it {self.kafka_container_id} kafka-topics --create --topic {new_topic} --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1"
         if new_topic in self.list_topics():
-            raise Exception("Topic name already used !")
+            raise ExistantTopicName("Topic name already used !")
         
         result = os.system(create_topic_cmd)
         if result != 0:
-            raise Exception("Create topic command error")
+            raise AddTopicError("Create topic command error")
         
         return self.list_topics()
             
@@ -92,10 +94,13 @@ class TopicsManager():
 
         delete_topic_cmd = f"docker exec -it {self.kafka_container_id} kafka-topics --delete --topic {topic_name} --bootstrap-server localhost:9092"
         if topic_name not in self.list_topics():
-            raise Exception("Topic name does not exist !")
+            raise Exception("Topic name does not exist !") # to update
         
         result = os.system(delete_topic_cmd)
         if result != 0:
-            raise Exception("delete topic command error")
+            raise Exception("delete topic command error") #to ipdate
         
         return self.list_topics()
+    
+    
+topics_manager = TopicsManager()
