@@ -26,7 +26,7 @@ import Footer from "components/Footer/Footer";
 import { SearchCity } from "./SearchCity";
 
 // Import the widgets
-import { ReactWeatherWidget } from "../../components/Widgets";
+
 
 function DashboardPage() { 
   document.documentElement.classList.remove("nav-open");
@@ -75,7 +75,7 @@ function DashboardPage() {
           <br />
           <hr />
           <Row>
-            <Col md="6">
+            {/* <Col md="6">
               <ReactWeatherWidget />
             </Col>
             <Col md="6">
@@ -86,7 +86,7 @@ function DashboardPage() {
             </Col>
             <Col md="6">
               <ReactWeatherWidget />
-            </Col>
+            </Col> */}
           </Row>
         </Container>
       </div>

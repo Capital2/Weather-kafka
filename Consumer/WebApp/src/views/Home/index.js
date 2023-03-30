@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import Search from "components/Search/Search";
 import CurrentWeather from "components/CurrentWeather/CurrentWeather";
+import Forecast from "components/Forecast/Forecast";
 import HomeHeader from "components/Headers/HomeHeader";
 import { Container, Row, Col, Button } from "reactstrap";
 
@@ -44,7 +45,7 @@ const Home = () => {
   return (
     <>
       <HomeHeader />
-      <div className="section section-dark section-nucleo-icons">
+      <div className="section section-dark">
         <Container>
           <Row>
             <Col lg="6" md="12">
@@ -77,9 +78,11 @@ const Home = () => {
                 View All Icons
               </Button>
             </Col>
-            <Col lg="6" md="12">
-              <CurrentWeather data={currentWeather} />
-            </Col>
+            {currentWeather && (
+              <Col lg="6" md="12">
+                <CurrentWeather data={currentWeather} />
+              </Col>
+            )}
           </Row>
         </Container>
       </div>{" "}
@@ -95,23 +98,14 @@ const Home = () => {
                 what you can built with this powerful kit.
               </p>
             </Col>
+            {forecast && (
+              <Col className="ml-auto mr-auto text-center" md="12">
+                <Forecast data={forecast} />
+              </Col>
+            )}
           </Row>
         </Container>
-      </div>
-      {/* <Container className="mt-4">
-        <Row>
-          <Col className="ml-auto mr-auto" lg="4">
-            <Search onSearchChange={onSearchChange} />
-          </Col>
-        </Row>
-        {currentWeather && (
-          <Row>
-            <Col className="ml-auto mr-auto" lg="12">
-             
-            </Col>
-          </Row>
-        )}
-      </Container> */}
+      </div>   
     </>
   );
 };
