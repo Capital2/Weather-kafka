@@ -1,53 +1,47 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import "./map.css";
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Popup, Marker } from "react-leaflet";
 
-const WeatherMap = ({ apiKey }) => {
-  const [weatherData, setWeatherData] = useState(null);
+import 'leaflet/dist/leaflet.css';
+import "./WeatherMap.css";
+
+const WeatherMap = () => {
+  const [lat, setLat] = useState(51.505);
+  const [lng, setLng] = useState(-0.09);
+  const [zoom, setZoom] = useState(13);
+  const [weather, setWeather] = useState(null);
 
   useEffect(() => {
-    // Use axios to fetch the weather data from the OpenWeather API
-    fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=44.34&lon=10.99&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
-      // `https://api.openweathermap.org/data/2.5/onecall?lat=51.5074&lon=0.1278&exclude=&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}&units=metric`
-    )
-      .then((response) => response.json())
-      .then((response) => {
-        console.log("data my man")
-        console.log(response)
-        setWeatherData(response)
-      })
-      .catch((error) => console.error(error));
-  }, []);
-
-  if (!weatherData) return null;
-
-  const { lat, lon, timezone, current, daily, hourly, alerts } = weatherData;
+    const fetchData = async () => {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}&units=metric`
+      );
+      const data = await response.json();
+      setWeather(data);
+    };
+    fetchData();
+  }, [lat, lng]);
 
   return (
-    <MapContainer center={[weatherData.coord.lat, weatherData.coord.lon]} zoom={13} style={{ height: "100vh" }}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={[weatherData.coord.lat, weatherData.coord.lon]}>
-        <Popup>
-          <h2>{timezone}</h2>
-          <p>Current Temperature: {weatherData.main.temp}°C</p>
-          <p>Feels like: {weatherData.main.feels_like}°C</p>
-          <p>Humidity: {weatherData.main.humidity}%</p>
-          <p>Pressure: {weatherData.main.pressure} hPa</p>
-          {/* <p>UV Index: {current.uvi}</p> */}
-          <p>Visibility: {weatherData.visibility} meters</p>
-          <p>Wind: {weatherData.wind.speed} m/s</p>
-          <p>
-            Sunrise: {new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString()}
-          </p>
-          <p>Sunset: {new Date(weatherData.sys.sunset * 1000).toLocaleTimeString()}</p>
-        </Popup>
-      </Marker>
-     
-          
+    <MapContainer center={[lat, lng]} zoom={zoom} scrollWheelZoom={false}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
+      {weather && (
+        <Marker position={[lat, lng]}>
+          <Popup>
+            <div>
+              <h2>{weather.name}</h2>
+              <p>{weather.weather[0].description}</p>
+              <p>Temperature: {weather.main.temp} &deg;C</p>
+              <p>Humidity: {weather.main.humidity} %</p>
+              <p>Wind speed: {weather.wind.speed} m/s</p>
+            </div>
+          </Popup>
+        </Marker>
+      )}
     </MapContainer>
   );
 };
 
-export default WeatherMap;
+export default WeatherMap
