@@ -102,6 +102,7 @@ const Init = forwardRef((props, ref) => {
         <div className="p-4">
           <ContentAlert
             color="warning"
+            styles={{"color": "#fff"}}
             heading="Notes"
             messages={[
               "The email will be used by the application so that you will receive emails in case of extreme weather",
