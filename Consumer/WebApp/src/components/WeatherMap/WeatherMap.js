@@ -14,7 +14,8 @@ const myIcon = new Icon({
 });
 
 const WeatherMap = () => {
-  const [center, setCenter] = useState({ lat: 51.505, lng: -0.09 });
+  const [center, setCenter] = useState({ lat: 51.5074, lng: 0.1278 }); // London
+  // const [center, setCenter] = useState({ lat: 37.0902, lng: -95.7129 });
   const [zoom, setZoom] = useState(13);
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
@@ -24,7 +25,7 @@ const WeatherMap = () => {
     const fetchWeatherData = async () => {
       try {
         const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${API_KEY}`
+          `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${API_KEY}` // London
         );
         const data = await res.json();
         console.log("Data 1");
@@ -38,7 +39,7 @@ const WeatherMap = () => {
     const fetchForecastData = async () => {
       try {
         const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=London&appid=${API_KEY}`
+          `https://api.openweathermap.org/data/2.5/forecast?q=London&appid=${API_KEY}` // London
         );
         const data = await res.json();
         console.log("Data 2");
@@ -52,7 +53,8 @@ const WeatherMap = () => {
     const fetchAlertData = async () => {
       try {
         const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/onecall?lat=51.5074&lon=0.1278&exclude=minutely,hourly,daily&appid=${API_KEY}`
+         // `https://api.openweathermap.org/data/2.5/onecall?lat=${51.5074}&lon=${0.1278}&exclude=minutely,hourly,daily&appid=${API_KEY}` // London
+         `https://api.openweathermap.org/data/2.5/onecall?lat=${center.lat}&lon=${center.lng}&exclude=minutely,hourly,daily&appid=${API_KEY}`
         );
         const data = await res.json();
         console.log("Data 3");
@@ -114,7 +116,7 @@ const WeatherMap = () => {
           ))}
         </>
       )} */}
-      {alerts && (
+      {alerts.alerts !== undefined && (
         <>
           {alerts.alerts.map((alert) => (
             <Marker
