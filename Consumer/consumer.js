@@ -1,12 +1,15 @@
-const kafka = require('kafka-node');
+const { Kafka } = require('kafkajs');
 const server = require('http').createServer();
 const io = require('socket.io')(server, {
   cors: {
     origin: '*',
-  }});
+  }
+});
 
-const kafkaHost = 'localhost:9092';
-const kafkaClient = new kafka.KafkaClient({ kafkaHost });
+const kafka = new Kafka({
+  clientId: 'my-app',
+  brokers: ['localhost:9092']
+});
 
 // Map socket connections to Kafka consumers
 const consumers = new Map();
@@ -18,32 +21,44 @@ io.on('connection', (socket) => {
   // Initialize an empty list of consumers for this socket connection
   consumers.set(socket.id, []);
 
+  console.log("The list of consumers --> to see the socker id the init of the empty list")
+  console.log(consumers)
+
   // Handle incoming messages from the client
-  socket.on('message', (message) => {
-    console.log(`Received message from client: ${message}`);
+  socket.on('message', async (message) => {
+    console.log(`Received message from client:`);
+    console.log(message)
     const { type, topics } = message;
 
     if (type === 'subscribe') {
+      console.log("detected subscribe event")
       // Create a Kafka consumer for each topic specified by the client
-      topics.forEach((topic) => {
+      topics.forEach(async (topic) => {
         console.log(`Creating Kafka consumer for topic ${topic}`);
 
-        const consumer = new kafka.Consumer(kafkaClient, [{ topic }]);
+        const consumer = kafka.consumer({ groupId: 'test-group' });
+
+        await consumer.connect();
+        await consumer.subscribe({ topic });
 
         // Add the consumer to the map of consumers for this socket connection
         consumers.set(socket.id, [...(consumers.get(socket.id) || []), { topic, consumer }]);
+        console.log("the updated consumers list")
+        console.log(consumers)
 
         // Listen for incoming messages from Kafka
-        consumer.on('message', (message) => {
-          console.log(`Received message on topic ${topic}: ${message.value}`);
-          // Send the message to the connected socket client
-          socket.emit('message', { topic, data: message.value });
+        await consumer.run({
+          eachMessage: async ({ message }) => {
+            console.log(`Received message on topic ${topic}: ${message.value.toString()}`);
+            // Send the message to the connected socket client
+            socket.emit('message', { topic, data: message.value.toString() });
+          }
         });
 
         // Handle errors and close the consumer on disconnect
-        consumer.on('error', (error) => {
-          console.error(`Error in Kafka consumer for topic ${topic}: ${error}`);
-          consumer.close();
+        consumer.on('consumer.crash', (error) => {
+          console.error(`Error in Kafka consumer for topic ${topic}: ${error.message}`);
+          consumer.disconnect();
           consumers.set(socket.id, consumers.get(socket.id).filter(c => c.topic !== topic));
         });
       });
@@ -52,8 +67,12 @@ io.on('connection', (socket) => {
       topics.forEach((topic) => {
         const consumer = consumers.get(socket.id).find(c => c.topic === topic)?.consumer;
         if (consumer) {
-          consumer.close();
+          console.log("component will unmount delete the consumer")          
+          consumer.disconnect();
           consumers.set(socket.id, consumers.get(socket.id).filter(c => c.topic !== topic));
+
+          console.log("after delete lel consumer")
+          console.log(consumers)
         }
       });
     }
@@ -63,7 +82,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Socket disconnected');
     // Close all Kafka consumers associated with this socket connection
-    consumers.get(socket.id).forEach(c => c.consumer.close());
+    consumers.get(socket.id).forEach(c => c.consumer.disconnect());
     consumers.delete(socket.id);
   });
 });

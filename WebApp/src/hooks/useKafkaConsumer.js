@@ -15,21 +15,19 @@ const useKafkaConsumer = (ipAddress, port) => {
 
   const subscribe = (topics) => {
     if (socket) {
-      socket.emit('subscribe', { topics });
+      socket.emit('message', { type: "subscribe",  topics });
     }
   };
 
   const unsubscribe = (topics) => {
     if (socket) {
-      socket.emit('unsubscribe', { topics });
+      socket.emit('message', { type: "unsubscribe", topics });
     }
   };
 
   useEffect(() => {
     if (socket) {
-      socket.on('message', (message) => {
-        console.log("message we got from kafak ")
-        console.log(message)
+      socket.on('message', (message) => {       
         setMessages((prevMessages) => ({
           ...prevMessages,
           [message.topic]: message.data,
