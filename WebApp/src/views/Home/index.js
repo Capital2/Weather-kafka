@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from "react";
 
+import HomeHeader from "components/Headers/HomeHeader";
+import { Container, Row, Col, Button } from "reactstrap";
+
 import Search from "components/Search/Search";
 import CurrentWeather from "components/CurrentWeather/CurrentWeather";
 import Forecast from "components/Forecast/Forecast";
-import HomeHeader from "components/Headers/HomeHeader";
-import { Container, Row, Col, Button } from "reactstrap";
-import WeatherMap from 'components/WeatherMap/WeatherMap'
+import WeatherMap from "components/WeatherMap/WeatherMap";
 
 const Home = () => {
+  const [defaultWeahter, setDefaultWeather] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
+  const [alertWeather, setAlertWeather] = useState(null);
 
   const onSearchChange = (searchDataValue) => {
-    // Select option selected in the UI
-    console.log(searchDataValue);
     // Extracting the latitude and longitude from the searchDataValue
     const [lat, lon] = searchDataValue.value.split("$");
-    console.log("the latitude ", lat);
-    console.log("the longitude ", lon);
 
     const currentWeatherFetch = fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}&units=metric`
@@ -25,23 +24,25 @@ const Home = () => {
     const forecastFetch = fetch(
       `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}&units=metric`
     );
+    const alertWeatherFetch = fetch(
+      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,daily&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
+    );
 
-    Promise.all([currentWeatherFetch, forecastFetch])
+    Promise.all([currentWeatherFetch, forecastFetch, alertWeatherFetch])
       .then(async (response) => {
         const weatherResponse = await response[0].json();
         const forecastResponse = await response[1].json();
+        const alertResponse = await response[2].json();
 
         setCurrentWeather({
           cityLabel: searchDataValue.label,
           ...weatherResponse,
         });
         setForecast({ cityLabel: searchDataValue.label, ...forecastResponse });
+        setAlertWeather({ cityLabel: searchDataValue.label, ...alertResponse })
       })
       .catch((error) => console.error(error));
   };
-
-  console.log("Current weather data response ", currentWeather);
-  console.log("Forecast weather data ", forecast);
 
   return (
     <>
@@ -121,7 +122,7 @@ const Home = () => {
             </Col>
           </Row>
         </Container>
-        <WeatherMap />
+        <WeatherMap data={{ currnetData: currentWeather, forecastData: forecast, alertData: alertWeather }} />
       </div>
     </>
   );

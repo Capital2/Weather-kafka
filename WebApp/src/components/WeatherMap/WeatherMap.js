@@ -7,19 +7,21 @@ import { Icon } from "leaflet";
 
 import Forecast from "components/Forecast/Forecast";
 
-const API_KEY = process.env.REACT_APP_OPEN_WEATHER_API_KEY;
 const myIcon = new Icon({
   iconUrl: marker,
   iconSize: [32, 32],
 });
 
-const WeatherMap = () => {
-  const [center, setCenter] = useState({ lat: 51.5074, lng: 0.1278 }); // London
-  // const [center, setCenter] = useState({ lat: 37.0902, lng: -95.7129 });
+const WeatherMap = ({ data }) => {
+  console.log("props passed to the map component");
+  console.log(data);
+
+  const { currentData, forecastData, alertData } = data;
+  const [center, setCenter] = useState({
+    lat: currentData.coord.lat,
+    lon: currentData.coord.lon,
+  });
   const [zoom, setZoom] = useState(13);
-  const [weather, setWeather] = useState(null);
-  const [forecast, setForecast] = useState(null);
-  const [alerts, setAlerts] = useState(null);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -53,8 +55,8 @@ const WeatherMap = () => {
     const fetchAlertData = async () => {
       try {
         const res = await fetch(
-         // `https://api.openweathermap.org/data/2.5/onecall?lat=${51.5074}&lon=${0.1278}&exclude=minutely,hourly,daily&appid=${API_KEY}` // London
-         `https://api.openweathermap.org/data/2.5/onecall?lat=${center.lat}&lon=${center.lng}&exclude=minutely,hourly,daily&appid=${API_KEY}`
+          //  `https://api.openweathermap.org/data/2.5/onecall?lat=${51.5074}&lon=${0.1278}&exclude=minutely,hourly,daily&appid=${API_KEY}` // London
+          `https://api.openweathermap.org/data/2.5/onecall?lat=${center.lat}&lon=${center.lng}&exclude=minutely,hourly,daily&appid=${API_KEY}`
         );
         const data = await res.json();
         console.log("Data 3");
