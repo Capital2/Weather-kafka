@@ -1,0 +1,15 @@
+{
+  "name": "kafkajsconsumer",
+  "version": "1.0.0",
+  "description": "consumer built with kafka JS that uses sockets to interact with clients",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "kafka-node": "^5.0.0",
+    "socket.io": "^4.6.1"
+  }
+}

@@ -8,11 +8,33 @@ import CurrentWeather from "components/CurrentWeather/CurrentWeather";
 import Forecast from "components/Forecast/Forecast";
 import WeatherMap from "components/WeatherMap/WeatherMap";
 
+import useKafkaConsumer from "hooks/useKafkaConsumer";
+
 const Home = () => {
   const [defaultWeahter, setDefaultWeather] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [alertWeather, setAlertWeather] = useState(null);
+
+  const { subscribe, unsubscribe, messages } = useKafkaConsumer(
+    process.env.REACT_APP_KAFKA_CONSUMER_IP,
+    process.env.REACT_APP_KAFKA_CONSUMER_PORT
+  );
+
+  useEffect(() => {
+    // Subscribe to Kafka topics when component mounts
+    subscribe(["topic-test-1"]);
+
+    return () => {
+      // Unsubscribe from Kafka topics when component unmounts
+      unsubscribe(["topic-test-1"]);
+    };
+  }, [subscribe, unsubscribe]);
+
+  useEffect(() => {
+    console.log("messages we got from the kafka")
+    console.log(messages)
+  }, [messages])
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
@@ -39,7 +61,7 @@ const Home = () => {
           ...weatherResponse,
         });
         setForecast({ cityLabel: searchDataValue.label, ...forecastResponse });
-        setAlertWeather({ cityLabel: searchDataValue.label, ...alertResponse })
+        setAlertWeather({ cityLabel: searchDataValue.label, ...alertResponse });
       })
       .catch((error) => console.error(error));
   };
@@ -122,7 +144,13 @@ const Home = () => {
             </Col>
           </Row>
         </Container>
-        <WeatherMap data={{ currentData: currentWeather, forecastData: forecast, alertData: alertWeather }} />
+        <WeatherMap
+          data={{
+            currentData: currentWeather,
+            forecastData: forecast,
+            alertData: alertWeather,
+          }}
+        />
       </div>
     </>
   );

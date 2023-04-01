@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
 
-import { openWeatherOptions, GEO_API_URL } from "api";
-
 const Search = ({ onSearchChange }) => {
   // State that holds the typed value of the input field
   const [searchData, setSearchData] = useState(null);
@@ -16,7 +14,6 @@ const Search = ({ onSearchChange }) => {
 
   // Function to parse the data returned from the openweather api
   const parseData = (data) => {  
-    console.log(data)  
     return {
         options: data.map((city) => {
             return {
