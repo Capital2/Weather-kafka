@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import React, { useState, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "styles/WeatherMap.css";
 import marker from "assets/img/map/Location.svg";
@@ -12,119 +12,70 @@ const myIcon = new Icon({
   iconSize: [32, 32],
 });
 
-const WeatherMap = ({ data }) => {
-  console.log("props passed to the map component");
-  console.log(data);
 
+const WeatherMap = ({ data }) => {
   const { currentData, forecastData, alertData } = data;
   const [center, setCenter] = useState({
-    lat: currentData.coord.lat,
-    lon: currentData.coord.lon,
+    lat: currentData !== null ? currentData.coord.lat : 0,
+    lon: currentData !== null ? currentData.coord.lon : 0,
   });
   const [zoom, setZoom] = useState(13);
 
+  function ChangeView({ center, zoom }) {
+    const map = useMap();
+    map.setView(center, zoom);
+    return null;
+  }
+  
   useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${API_KEY}` // London
-        );
-        const data = await res.json();
-        console.log("Data 1");
-        console.log(data);
-        setWeather(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    if (currentData !== null) {
+      setCenter({
+        lat: currentData.coord.lat,
+        lon: currentData.coord.lon,
+      });
+    }
+  }, [currentData]);
 
-    const fetchForecastData = async () => {
-      try {
-        const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=London&appid=${API_KEY}` // London
-        );
-        const data = await res.json();
-        console.log("Data 2");
-        console.log(data);
-        setForecast(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchAlertData = async () => {
-      try {
-        const res = await fetch(
-          //  `https://api.openweathermap.org/data/2.5/onecall?lat=${51.5074}&lon=${0.1278}&exclude=minutely,hourly,daily&appid=${API_KEY}` // London
-          `https://api.openweathermap.org/data/2.5/onecall?lat=${center.lat}&lon=${center.lng}&exclude=minutely,hourly,daily&appid=${API_KEY}`
-        );
-        const data = await res.json();
-        console.log("Data 3");
-        console.log(data);
-        setAlerts(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchWeatherData();
-    fetchForecastData();
-    fetchAlertData();
-  }, []);
-
-  if (weather == null || forecast == null || alerts == null) {
+  if (currentData == null || forecastData == null || alertData == null) {
     return null;
   }
   return (
-    <MapContainer center={center} zoom={zoom}>
+    <MapContainer center={center} zoom={zoom} scrollWheelZoom={false}>
+      <ChangeView center={center} zoom={zoom} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {weather && (
-        <Marker position={[weather.coord.lat, weather.coord.lon]} icon={myIcon}>
+      {currentData !== null && (
+        <Marker
+          position={[currentData.coord.lat + (Math.random() - 0.5) * 0.01, currentData.coord.lon + (Math.random() - 0.5) * 0.01]}
+          icon={myIcon}
+          draggable={true}
+        >
           <Popup className="current-forecast-weather-popup">
             <div className="current-forecast-weather">
               <div>
-                <h2>{weather.name}</h2>
-                <p>Temperature: {Math.round(weather.main.temp - 273.15)}°C</p>
-                <p>Humidity: {weather.main.humidity}%</p>
-                <p>Wind Speed: {weather.wind.speed} m/s</p>
-                <p>Weather: {weather.weather[0].main}</p>
+                <h2>{currentData.name}</h2>
+                <p>
+                  Temperature: {Math.round(currentData.main.temp - 273.15)}°C
+                </p>
+                <p>Humidity: {currentData.main.humidity}%</p>
+                <p>Wind Speed: {currentData.wind.speed} m/s</p>
+                <p>Weather: {currentData.weather[0].main}</p>
               </div>
-              <Forecast data={forecast} />
+              <Forecast data={forecastData} />
             </div>
           </Popup>
         </Marker>
       )}
-      {/* {forecast && (
+      {alertData !== null && alertData.alerts !== undefined && (
         <>
-          {forecast.list.map((item, index) => (
-            <Marker
-              key={item.dt}
-              position={[forecast.city.coord.lat, forecast.city.coord.lon]}
-              icon={myIcon}              
-            >
-              <Popup>
-                <div>
-                  <h2>{item.dt_txt}</h2>
-                  <p>Temperature: {Math.round(item.main.temp - 273.15)}°C</p>
-                  <p>Humidity: {item.main.humidity}%</p>
-                  <p>Wind Speed: {item.wind.speed} m/s</p>
-                  <p>Weather: {item.weather[0].main}</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </>
-      )} */}
-      {alerts.alerts !== undefined && (
-        <>
-          {alerts.alerts.map((alert) => (
+          {alertData.alerts.map((alert) => (
             <Marker
               key={alert.event}
-              position={[alerts.lat, alerts.lon]}
+              position={[alertData.lat, alertData.lon]}
               icon={myIcon}
+              draggable={true}
             >
               <Popup>
                 <div>

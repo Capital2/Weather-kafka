@@ -122,7 +122,7 @@ const Home = () => {
             </Col>
           </Row>
         </Container>
-        <WeatherMap data={{ currnetData: currentWeather, forecastData: forecast, alertData: alertWeather }} />
+        <WeatherMap data={{ currentData: currentWeather, forecastData: forecast, alertData: alertWeather }} />
       </div>
     </>
   );
