@@ -5,7 +5,7 @@ import os
 class TopicsManager():   
     
     def __init__(self):
-        self.kafka_container_id = self.get_container_id("kafka")
+        self.kafka_container_id = self.get_container_id("confluentinc/cp-kafka")
 
     def get_container_id(self, container_name:str):
         """
@@ -21,9 +21,11 @@ class TopicsManager():
             Exception: If the Docker container is not found or if there is an error executing the command.
         """
 
-        cmd = 'docker ps --format "table {{.ID}}\t{{.Image}}" | grep ' + container_name
-        with os.popen(cmd) as result:
+        cmd = 'docker ps --format "table {{.ID}}\t{{.Image}}" | grep ' + container_name      
+        with os.popen(cmd) as result:           
             container = result.readlines()
+            print("wzap")
+            print(container)
             if len(container) == 0:
                 raise Exception("Container not found") # chroufa upodate this
             container = container[0].split(" ")[0]
@@ -102,5 +104,5 @@ class TopicsManager():
         
         return self.list_topics()
     
-    
+
 topics_manager = TopicsManager()

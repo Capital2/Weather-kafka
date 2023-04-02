@@ -102,12 +102,16 @@ services:
   kafka-consumer:
     image: kafka-consumer:latest
     container_name: kafka-consumer
+    depends_on:
+      - broker
     ports:
       - "8080:8080"
 
   backend:
     image: weather-app-backend:latest
     container_name: backend
+    depends_on:
+      - broker
     ports:
       - "8000:8000"
 
