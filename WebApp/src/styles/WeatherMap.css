@@ -1,0 +1,11 @@
+.leaflet-container {
+    height: 1000px !important;
+}
+
+.current-forecast-weather-popup {
+    width: 400px !important;
+}
+
+.current-forecast-weather-popup .current-forecast-weather {
+    width: 115% !important;
+}
