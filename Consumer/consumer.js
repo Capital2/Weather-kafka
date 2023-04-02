@@ -8,7 +8,8 @@ const io = require('socket.io')(server, {
 
 const kafka = new Kafka({
   clientId: 'my-app',
-  brokers: ['localhost:9092']
+  brokers: ['20.16.155.55:9092']
+  // brokers: ['0.0.0.0:9092']
 });
 
 // Map socket connections to Kafka consumers
