@@ -7,22 +7,11 @@ from OpenWeatherApi import OpenWeatherApi
 producer = KafkaProducer(bootstrap_servers='0.0.0.0:9092')
 config = configparser.ConfigParser()
 
-jsonpaylode = {
-    "hello": "3asbaaaaaa"
-}
-"""
-# load from config.ini
-config.read("config.cfg")
-keys = json.loads(config.get("Api","keys"))
-
-api = OpenWeatherApi(params = {
-            'id': 2467959,
-            'units': 'metric',
-            'appid': keys[0]
-        })
-
-r = api.get()
-"""
-jsonpaylode = json.dumps(jsonpaylode, indent=2).encode('utf-8')
-producer.send('2467959', jsonpaylode) # topic name is greetings
+for i in range(0,1000):
+        
+    jsonpaylode = {
+        "hello": f"3asbaaaaa{i}"
+    }
+    jsonpaylode = json.dumps(jsonpaylode, indent=2).encode('utf-8')
+    producer.send('2467959', jsonpaylode) # topic name is greetings
 producer.close()

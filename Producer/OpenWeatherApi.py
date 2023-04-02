@@ -3,12 +3,39 @@ import requests
 from api_exceptions import ApiServerException, LimitReachedException, ApiKeyNotWorkingException, MalformattedRequestException, ApiErrorException
 
 class OpenWeatherApi:
-    def __init__(self, params) -> None:
-        self.url = "https://api.openweathermap.org/data/2.5/weather?"
+    API_CALL_TYPES = {
+        "weather" : "weather",
+        "forecast" : "forecast",
+        "onecall": "alerts"
+    }
+
+    def __init__(self, params: dict) -> None:
+        self.url = f"https://api.openweathermap.org/data/2.5"
         self.params = params
-    
-    def get(self) -> requests.Response:
-        response = requests.get(self.url + urllib.parse.urlencode(self.params))
+
+    def get_all(self) -> dict:
+        """
+        {
+            weather: weather,
+            forecast: forecast,
+            alerts: alerts
+        }
+        """
+        data = {}
+        for call_type, value in self.API_CALL_TYPES.items():
+            url = f"{self.url}/{call_type}?"
+            response = self.get(url)
+            data[value] = response.content.decode('utf-8')
+            if value == "alerts":
+                if 'alerts' in data[value]:
+                    data[value] = data[value]['alerts']
+                else:
+                    data[value] = "NO_DATA_FOUND"
+        return data
+
+
+    def get(self, url: str) -> requests.Response:
+        response = requests.get(url + urllib.parse.urlencode(self.params))
         if response.ok:
             return response
 

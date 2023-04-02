@@ -3,16 +3,18 @@ from time import sleep
 import logging
 logging.basicConfig(level=logging.INFO)
 
-pm = ProductionManager([])
+pm = ProductionManager([])  
 
-input("waiting 1 ..")
-
-pm.add_city(2467959)
+pm.add_city("P36D847569TP11D09386")
+print(pm.citylist)
 
 input("waiting 2 ...")
 
-while True:
-
-    print("prod")
-    sleep(1)
-    pass
+# "id": 2467959,
+# "name": "Kélibia",
+# "state": "",
+# "country": "TN",
+# "coord": {
+#     "lon": 11.09386,
+#     "lat": 36.847569
+# }

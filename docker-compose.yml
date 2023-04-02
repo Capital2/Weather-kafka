@@ -44,6 +44,8 @@ services:
     #       memory: 3G
     hostname: cassandra
     container_name: cassandra
+    ports:
+      - "9042:9042"
     volumes:
       - ~/apps/cassandra:/var/lib/cassandra
 

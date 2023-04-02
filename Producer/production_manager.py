@@ -7,6 +7,8 @@ from OpenWeatherApi import OpenWeatherApi
 from time import sleep
 from kafka import KafkaProducer, errors
 from api_exceptions import ApiKeyNotWorkingException, LimitReachedException
+
+from CoordinatesEncoder import CoordinatesEncoder
 class ProductionManager:
     """
     A singleton class that spawns kafka producers and manages them, 
@@ -18,7 +20,7 @@ class ProductionManager:
 
     """
     
-    def __init__(self, citylist: list, config_path = "config.cfg", bootstrap_server='0.0.0.0:9092', timeout=2.5) -> None:
+    def __init__(self, citylist: list, config_path = "config.cfg", bootstrap_server='0.0.0.0:9092', timeout=60*10) -> None:
         """Args:
             citylist: Initial list of ints representing cityids to produce to
             config_path: path to configuration file
@@ -49,7 +51,7 @@ class ProductionManager:
     
     @property
     def citylist(self):
-        return [city for listcity in self._procinfo for city in listcity] # naaref kizebi ama b5elt
+        return [city for listcity in self._procinfo for city in listcity] # Noice
 
     @citylist.setter
     def citylist(self, value):
@@ -91,21 +93,26 @@ class ProductionManager:
             # main producing loop
             while True:
                 for cityid in cityidlist:
+                    # Decoding cityid to coordinates
+                    latitude, longitude = CoordinatesEncoder.decode(cityid)
                     api = OpenWeatherApi(params = {
-                        'id': cityid,
+                        'lat': latitude,
+                        'lon': longitude,
                         'units': 'metric',
                         'appid': apikey
                     })
                     try:
-                        jsonpaylode = api.get()
+                        data = api.get_all()
                     except (LimitReachedException, ApiKeyNotWorkingException) as e:
                         logging.error(f"process {os.getpid()} with {index=} has an api key {apikey} that is not working or a limit might be reached \
                                       offloading to other processes")
                         # TODO: implement offloading algos
 
                     calls += 1
+                    # serializing
+                    data = json.dumps(data, indent=2).encode('utf-8')
                     try:
-                        producer.send(str(cityid), jsonpaylode.content)
+                        producer.send(str(cityid), data)
                     except errors.KafkaTimeoutError as e:
                         logging.error(f"KafkaTimeoutError raised, from process {os.getpid()} with {index=}\
                                       while pushing to topic {cityid}")
