@@ -10,13 +10,13 @@ services:
   broker:
     image: confluentinc/cp-kafka:7.3.0
     # deploy:
-      # resources:
-      #   reservations:
-      #     cpus: '1'
-      #     memory: 1G
-      #   limits:
-      #     cpus: '1.2'
-      #     memory: 1.1G
+    # resources:
+    #   reservations:
+    #     cpus: '1'
+    #     memory: 1G
+    #   limits:
+    #     cpus: '1.2'
+    #     memory: 1.1G
     container_name: broker
     ports:
       - "9092:9092"
@@ -32,8 +32,9 @@ services:
       # KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 
-  
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:
+
+
   cassandra:
     image: cassandra
     # deploy:
@@ -85,7 +86,15 @@ services:
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-  
+
+  backend:
+    image: weather-app-backend:latest
+    container_name: backend
+    depends_on:
+      - broker
+    ports:
+      - "8000:8000"
+      
   web-app:
     image: weather-web-app:latest
     container_name: web-app
@@ -106,14 +115,3 @@ services:
       - broker
     ports:
       - "8080:8080"
-
-  backend:
-    image: weather-app-backend:latest
-    container_name: backend
-    depends_on:
-      - broker
-    ports:
-      - "8000:8000"
-
-
-
