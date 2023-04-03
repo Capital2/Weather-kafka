@@ -23,11 +23,11 @@ const Home = () => {
 
   useEffect(() => {
     // Subscribe to Kafka topics when component mounts
-    subscribe(["topic-test-1"]);
+    subscribe(["P36D847569TP11D09386"]);
 
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
-      unsubscribe(["topic-test-1"]);
+      unsubscribe(["P36D847569TP11D09386"]);
     };
   }, [subscribe, unsubscribe]);
 
