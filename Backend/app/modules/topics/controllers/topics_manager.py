@@ -3,12 +3,15 @@ from kafka.errors import KafkaError, NoBrokersAvailable
 from kafka.admin import NewTopic
 from time import sleep
 
+from modules.settings.settings import settings
+
 
 class TopicsManager:
     def __init__(self) -> None:
         self.num_partitions = 1
         self.replication_factor = 1
         self.admin_client = self.init_admin_client()
+        
 
     def init_admin_client(self) -> KafkaAdminClient:
         retries = 1
@@ -19,7 +22,7 @@ class TopicsManager:
                     raise Exception("Number of retries searching for available brokers is hit")
 
                 admin_client = KafkaAdminClient(
-                    bootstrap_servers=["20.16.155.55:9092"])
+                    bootstrap_servers=[f'{settings.kafka_broker_ip}:{settings.kafka_broker_port}'])
                 flag = False
             except NoBrokersAvailable:
                 retries += 1
