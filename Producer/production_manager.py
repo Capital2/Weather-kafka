@@ -65,7 +65,7 @@ class ProductionManager:
                 return True
         return False
     
-    def add_city(self, cityid):
+    def add_city(self, cityid: str):
         """adds a city to the producers pool"""
         # when adding a city we need to preserve some kind of balance, we check for the one that has the
         # lowest num of cities
@@ -76,6 +76,39 @@ class ProductionManager:
             if len(lowest) >  len(prod):
                 lowest = prod
         lowest.append(cityid)
+
+        # Produce for the first time
+        for api_key in self.keys:
+            try:
+                self.produce_first_time(cityid, api_key)
+            except (LimitReachedException, ApiKeyNotWorkingException) as e:
+                logging.error(f"ApiKeyNotWorkingException raised, while pushing to topic {cityid} for the first time")
+                continue
+            break # if we get here then the api key is working and we can break the loop
+
+    
+    def produce_first_time(self, cityid: str, api_key: str , bootstrap_server='0.0.0.0:9092'):
+        """produces for the first time to a cityid topic so that we can have some data to work with"""
+        
+        producer = KafkaProducer(bootstrap_servers=bootstrap_server)
+
+        # Decoding cityid to coordinates
+        latitude, longitude = CoordinatesEncoder.decode(cityid)
+        api = OpenWeatherApi(params = {
+            'lat': latitude,
+            'lon': longitude,
+            'units': 'metric',
+            'appid': api_key
+        })
+        data = api.get_all()
+            
+        # serializing
+        data = json.dumps(data, indent=2).encode('utf-8')
+        try:
+            producer.send(str(cityid), data)
+        except errors.KafkaTimeoutError as e:
+            logging.error(f"KafkaTimeoutError raised, while pushing to topic {cityid} for the first time")
+            
     
     def add_list_city(self, cityidlist : list):
         for item in cityidlist:
