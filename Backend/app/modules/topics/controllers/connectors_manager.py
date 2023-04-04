@@ -1,4 +1,5 @@
 import requests
+from cassandra.cluster import Cluster
 
 from topics_manager import TopicsManager
 
@@ -27,13 +28,40 @@ class ConnectorsManager:
         return response.json()
 
 
-    def create_connector(self, connector_name: str, topic_name: str) -> list:
+    def create_cassandra_table(table_name: str):
+        """
+        Creates a new Cassandra table with the specified name and a single column called 'data'.
+
+        Parameters:
+            table_name (str): The name of the table to create.
+
+        Returns:
+            None: This function does not return anything, but creates a new Cassandra table.
+
+        Raises:
+            cassandra.cluster.NoHostAvailable: If the Cassandra cluster is not available or cannot be reached.
+        """
+
+        cluster = Cluster(['localhost']) 
+        session = cluster.connect('weather')
+
+        # Create table
+        query = f"CREATE TABLE IF NOT EXISTS {table_name} (data text PRIMARY KEY)"
+        session.execute(query)
+
+        # Close connection
+        session.shutdown()
+        cluster.shutdown()
+
+
+    def create_connector(self, connector_name: str, topic_name: str, encrypted_city_coordinates: str) -> list:
         """
         Creates a new Kafka Connect connector with the specified name and topic.
 
         Args:
             connector_name (str): The name to assign to the new connector.
             topic_name (str): The name of the topic to use for the connector.
+            encrypted_city_coordinates (str): The encrypted latitude and longitude of the city sinked.
 
         Returns:
             A list of all the Kafka Connect connectors available on the system after the new connector is created.
@@ -45,6 +73,8 @@ class ConnectorsManager:
         if topic_name not in TopicsManager().list_topics():
             raise Exception(f'Topic {topic_name} does not exist !')
         
+        self.create_cassandra_table(encrypted_city_coordinates)
+
         headers = {'Content-Type': 'application/json'}
         data = {
             "name": connector_name,
@@ -54,8 +84,8 @@ class ConnectorsManager:
                 "topics": topic_name,
                 "contactPoints": "cassandra",
                 "loadBalancing.localDc": "datacenter1",
-                f"topic.{topic_name}.weather.kafkasink.mapping": "data=value",
-                f"topic.{topic_name}.weather.kafkasink.consistencyLevel": "LOCAL_QUORUM" 
+                f"topic.{topic_name}.weather.{encrypted_city_coordinates}.mapping": "data=value",
+                f"topic.{topic_name}.weather.{encrypted_city_coordinates}.consistencyLevel": "LOCAL_QUORUM" 
             }
         }
         response = requests.post(url=self.URL, json=data, headers=headers)
