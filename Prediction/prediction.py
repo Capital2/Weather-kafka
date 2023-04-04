@@ -41,3 +41,7 @@ model = m.fit(df)
 future_temperature = m.make_future_dataframe(periods=3,freq='D')
 forecast = m.predict(future_temperature)
 print(forecast.tail())
+
+# Close connection
+session.shutdown()
+cluster.shutdown()
