@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
         const consumer = kafka.consumer({ groupId: 'test-group' });
 
         await consumer.connect();
-        await consumer.subscribe({ topic });
+        await consumer.subscribe({ topic, fromBeginning: false });
 
         // Add the consumer to the map of consumers for this socket connection
         consumers.set(socket.id, [...(consumers.get(socket.id) || []), { topic, consumer }]);
