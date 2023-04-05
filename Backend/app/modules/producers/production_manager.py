@@ -10,6 +10,7 @@ from api_exceptions import ApiKeyNotWorkingException, LimitReachedException
 
 from CoordinatesEncoder import CoordinatesEncoder
 class ProductionManager:
+    
     """
     A singleton class that spawns kafka producers and manages them, 
     brabbi instance barka chabeb be5el 3ala 7al ma5ir rahi singleton
