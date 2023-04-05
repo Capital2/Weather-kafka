@@ -115,3 +115,15 @@ services:
       - broker
     ports:
       - "8080:8080"
+  sql-db:
+    image: mysql
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_data:/var/lib/mysql
+volumes:
+  db_data:
+

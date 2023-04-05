@@ -28,7 +28,7 @@ class ConnectorsManager:
         return response.json()
 
 
-    def create_cassandra_table(table_name: str):
+    def create_cassandra_table(self, table_name: str):
         """
         Creates a new Cassandra table with the specified name and a single column called 'data'.
 
@@ -54,15 +54,13 @@ class ConnectorsManager:
         cluster.shutdown()
 
 
-    def create_connector(self, connector_name: str, topic_name: str, encrypted_city_coordinates: str) -> list:
+    def create_connector(self, connector_name: str, topic_name: str) -> list:
         """
         Creates a new Kafka Connect connector with the specified name and topic.
 
         Args:
             connector_name (str): The name to assign to the new connector.
             topic_name (str): The name of the topic to use for the connector.
-            encrypted_city_coordinates (str): The encrypted latitude and longitude of the city sinked.
-
         Returns:
             A list of all the Kafka Connect connectors available on the system after the new connector is created.
 
@@ -72,7 +70,7 @@ class ConnectorsManager:
 
         if topic_name not in TopicsManager().list_topics():
             raise Exception(f'Topic {topic_name} does not exist !')
-        
+        encrypted_city_coordinates = topic_name.lower()
         self.create_cassandra_table(encrypted_city_coordinates)
 
         headers = {'Content-Type': 'application/json'}
@@ -139,3 +137,4 @@ class ConnectorsManager:
             raise Exception(response.json())
         
         return self.list_connectors()
+
