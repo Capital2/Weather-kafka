@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { Kafka } = require('kafkajs');
 const server = require('http').createServer();
 const io = require('socket.io')(server, {
@@ -8,8 +9,7 @@ const io = require('socket.io')(server, {
 
 const kafka = new Kafka({
   clientId: 'my-app',
-  brokers: ['20.16.155.55:9092']
-  // brokers: ['0.0.0.0:9092']
+  brokers: [`${process.env.KAFKA_BROKER_IP}:${process.env.KAFKA_BROKER_PORT}`]
 });
 
 // Map socket connections to Kafka consumers
@@ -89,5 +89,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(8080, () => {
-  console.log('Server listening on port 8080');
+  console.log(`Server listening on ${process.env.KAFKA_BROKER_IP}:${process.env.KAFKA_BROKER_PORT}`);
 });
