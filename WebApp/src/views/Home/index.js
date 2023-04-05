@@ -36,44 +36,46 @@ const Home = () => {
   } = useAppState();
 
   // useEffect to to track if the default city state is not null to extract the topic name associated to it from the backend
-  useEffect(() => {
+  useEffect(() => {    
     if (defaultCity !== null) {
-      console.log("default city within the home component");
-      console.log(defaultCity);
       const [lat, lon] = defaultCity.value.split("$");
 
       fetch(
-        `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription`,
+        `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            lat,
-            lon,
-          }),
+          method: "GET",
+          headers: { "Content-Type": "application/json" },         
         }
       )
         .then((response) => response.json())
-        .then((data) => console.log(data))
+        .then((data) => {
+          // Set the default topic name in the global app state
+          setDefaultTopic(data.topic_name)
+
+          // Get data associated to that topic from the localStorage
+          if(messages[data.topic_name]){
+            setDefaultWeather(messages[data.topic_name])
+          }
+
+          // Subscribe to my default app city
+          // Before subscribing check if there is data alredy set in the localstorage
+          subscribe([data.topic_name])
+        })
         .catch((error) => console.error(error));
     }
   }, [defaultCity]);
 
   // useEffect to manage the subcriptions to the topics
-  useEffect(() => {
-    // Subscribe to Kafka topics when component mounts
-    subscribe(["P36D847569TP11D09386"]);
+  // useEffect(() => {
+  //   // Subscribe to Kafka topics when component mounts
+  //   subscribe(["P36D847569TP11D09386"]);
 
-    return () => {
-      // Unsubscribe from Kafka topics when component unmounts
-      unsubscribe(["P36D847569TP11D09386"]);
-    };
-  }, [subscribe, unsubscribe]);
+  //   return () => {
+  //     // Unsubscribe from Kafka topics when component unmounts
+  //     unsubscribe(["P36D847569TP11D09386"]);
+  //   };
+  // }, [subscribe, unsubscribe]);
 
-  useEffect(() => {
-    console.log("messages we got from the kafka");
-    console.log(messages);
-  }, [messages]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
@@ -109,7 +111,7 @@ const Home = () => {
 
   return (
     <>
-      <HomeHeader />
+      <HomeHeader defaultWeahter={defaultWeahter} />
       <div className="section section-dark">
         <Container>
           <Row>

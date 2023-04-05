@@ -9,6 +9,13 @@ const useKafkaConsumer = (ipAddress, port) => {
     const newSocket = io(`http://${ipAddress}:${port}`);
 
     setSocket(newSocket);
+    
+    let localStorageMessages = localStorage.getItem("messages")
+    if(localStorageMessages === null){
+      localStorage.setItem("messages", JSON.stringify(messages))
+    } else {
+      setMessages(JSON.parse(localStorageMessages))
+    }
 
     return () => newSocket.close();
   }, []);

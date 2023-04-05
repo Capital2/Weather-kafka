@@ -8,5 +8,5 @@ router = APIRouter(
 
 
 @router.get("/manage_subscription", response_model=dict)
-async def manage_subscriptions(city_lat_long: str):
-    return topics_controller.manage_subscriptions(city_lat_long)
+async def manage_subscriptions(lat: str, lon: str):
+    return topics_controller.manage_subscriptions(lat, lon)

@@ -21,7 +21,6 @@ import { useAppState } from "hooks/useAppContext";
 const Init = forwardRef((props, ref) => {
   // The init modal state
   const [initModal, setInitModal] = useState(false);
-
   // The config object that will hold all the data needed (default city, user email, ...)
   const [config, setConfig] = useState({});
 
@@ -57,6 +56,7 @@ const Init = forwardRef((props, ref) => {
     // Check if the user set a default city and an email address
     let defaultCity = localStorage.getItem("defaultCity");
     let email = localStorage.getItem("email");
+    let messages = localStorage.getItem("messages")
     if (defaultCity === null) {
       // Launch the modal to force the user to setup the dafault city and his email address
       setInitModal(true);

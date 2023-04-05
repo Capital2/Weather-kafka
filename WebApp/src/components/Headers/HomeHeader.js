@@ -6,7 +6,7 @@ import { Container } from "reactstrap";
 
 // core components
 
-function HomeHeader() {
+function HomeHeader({ defaultWeahter }) {
   return (
     <>
       <div
