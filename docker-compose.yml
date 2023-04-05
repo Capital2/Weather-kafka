@@ -17,11 +17,12 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT      
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://20.16.155.55:9092,PLAINTEXT_INTERNAL://broker:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:
+
 
   cassandra:
     image: cassandra
@@ -59,37 +60,38 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_ZOOKEEPER_CONNECT: 'zookeeper:2181'
 
-  # backend:
-  #   image: weather-app-backend:latest
-  #   container_name: backend
-  #   depends_on:
-  #     - broker
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     KAFKA_BROKER_IP: localhost
-  #     KAFKA_BROKER_PORT: 9092
+  backend:
+    image: weather-app-backend:latest
+    container_name: backend
+    depends_on:
+      - broker
+    ports:
+      - "8000:8000"
+    environment:
+      KAFKA_BROKER_IP: 20.16.155.55
+      KAFKA_BROKER_PORT: 9092
       
-  # web-app:
-  #   image: weather-web-app:latest
-  #   container_name: web-app
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kafka-consumer
-  #     - backend
-  #   environment:
-  #     REACT_APP_OPEN_WEATHER_API_KEY: ddbb8aaabb72066582b51071047352a2
-  #     REACT_APP_KAFKA_CONSUMER_IP: localhost
-  #     REACT_APP_KAFKA_CONSUMER_PORT: 8080
+  web-app:
+    image: weather-web-app:latest
+    container_name: web-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - kafka-consumer
+      - backend
+    environment:
+      REACT_APP_OPEN_WEATHER_API_KEY: ddbb8aaabb72066582b51071047352a2
+      REACT_APP_KAFKA_CONSUMER_IP: localhost
+      REACT_APP_KAFKA_CONSUMER_PORT: 8080
 
-  # kafka-consumer:
-  #   image: kafka-consumer:latest
-  #   container_name: kafka-consumer
-  #   depends_on:
-  #     - broker
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     KAFKA_BROKER_IP: localhost
-  #     KAFKA_BROKER_PORT: 9092
+  kafka-consumer:
+    image: kafka-consumer:latest
+    container_name: kafka-consumer
+    depends_on:
+      - broker
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKER_IP: 20.16.155.55
+      KAFKA_BROKER_PORT: 9092
+

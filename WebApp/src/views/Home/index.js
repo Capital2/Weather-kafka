@@ -61,6 +61,8 @@ const Home = () => {
           ...weatherResponse,
         });
         setForecast({ cityLabel: searchDataValue.label, ...forecastResponse });
+        console.log("alerts weather response")
+        console.log(alertResponse)
         setAlertWeather({ cityLabel: searchDataValue.label, ...alertResponse });
       })
       .catch((error) => console.error(error));
