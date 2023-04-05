@@ -17,8 +17,11 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT      
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      # When running on VPS
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://20.16.155.55:9092,PLAINTEXT_INTERNAL://broker:29092
+      # When running on localhost
+      # KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:
@@ -67,9 +70,6 @@ services:
       - broker
     ports:
       - "8000:8000"
-    environment:
-      KAFKA_BROKER_IP: 20.16.155.55
-      KAFKA_BROKER_PORT: 9092
       
   web-app:
     image: weather-web-app:latest
@@ -91,7 +91,13 @@ services:
       - broker
     ports:
       - "8080:8080"
+  sql-db:
+    image: mysql
+    container_name: mysql_db
     environment:
-      KAFKA_BROKER_IP: 20.16.155.55
-      KAFKA_BROKER_PORT: 9092
-
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_data:/var/lib/mysql
+      
