@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
 
-const Search = ({ onSearchChange }) => {
+const Search = ({ onSearchChange, defaultCity = null }) => {
   // State that holds the typed value of the input field
   const [searchData, setSearchData] = useState(null);
 
@@ -33,9 +33,10 @@ const Search = ({ onSearchChange }) => {
       .then((response) => parseData(response))
       .catch((error) => console.error(error));
   };
+
   return (
     <AsyncPaginate
-      placeholder="Search for city"
+      placeholder={defaultCity ? (defaultCity.label) : ("Search for city")}
       debounceTimeout={600}
       value={searchData}
       onChange={handleSearchDataChange}

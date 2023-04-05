@@ -9,6 +9,7 @@ import Forecast from "components/Forecast/Forecast";
 import WeatherMap from "components/WeatherMap/WeatherMap";
 
 import useKafkaConsumer from "hooks/useKafkaConsumer";
+import { useAppState } from "hooks/useAppContext";
 
 const Home = () => {
   const [defaultWeahter, setDefaultWeather] = useState(null);
@@ -21,6 +22,44 @@ const Home = () => {
     process.env.REACT_APP_KAFKA_CONSUMER_PORT
   );
 
+  const {
+    data,
+    defaultCity,
+    email,
+    defaultTopic,
+    topics,
+    pushData,
+    setDefaultCity,
+    setEmail,
+    setDefaultTopic,
+    setTopics,
+  } = useAppState();
+
+  // useEffect to to track if the default city state is not null to extract the topic name associated to it from the backend
+  useEffect(() => {
+    if (defaultCity !== null) {
+      console.log("default city within the home component");
+      console.log(defaultCity);
+      const [lat, lon] = defaultCity.value.split("$");
+
+      fetch(
+        `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat,
+            lon,
+          }),
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => console.log(data))
+        .catch((error) => console.error(error));
+    }
+  }, [defaultCity]);
+
+  // useEffect to manage the subcriptions to the topics
   useEffect(() => {
     // Subscribe to Kafka topics when component mounts
     subscribe(["P36D847569TP11D09386"]);
@@ -32,9 +71,9 @@ const Home = () => {
   }, [subscribe, unsubscribe]);
 
   useEffect(() => {
-    console.log("messages we got from the kafka")
-    console.log(messages)
-  }, [messages])
+    console.log("messages we got from the kafka");
+    console.log(messages);
+  }, [messages]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
@@ -61,8 +100,8 @@ const Home = () => {
           ...weatherResponse,
         });
         setForecast({ cityLabel: searchDataValue.label, ...forecastResponse });
-        console.log("alerts weather response")
-        console.log(alertResponse)
+        console.log("alerts weather response");
+        console.log(alertResponse);
         setAlertWeather({ cityLabel: searchDataValue.label, ...alertResponse });
       })
       .catch((error) => console.error(error));

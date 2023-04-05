@@ -15,6 +15,9 @@ import Navbar from "components/Navbar/Navbar";
 import Footer from "components/Footer/Footer";
 import Init from "components/Init/Init";
 
+// App context
+import { AppProvider } from "hooks/useAppContext";
+
 export default function App() {
   // Refrence on  the init modal
   const initModalRef = useRef();
@@ -24,21 +27,23 @@ export default function App() {
   };
   return (
     <>
-      <Init ref={initModalRef} />
-      <Navbar toggleInitModal={toggleInitModal} />
-      <div className="content">
-        <BrowserRouter>
-          <Switch>
-            <Route path="/home" render={(props) => <Home {...props} />} />
-            <Route
-              path="/dashboard"
-              render={(props) => <Dashboard {...props} />}
-            />
-            <Redirect to="/home" />
-          </Switch>
-        </BrowserRouter>
-      </div>
-      <Footer />
+      <AppProvider>
+        <Init ref={initModalRef} />
+        <Navbar toggleInitModal={toggleInitModal} />
+        <div className="content">
+          <BrowserRouter>
+            <Switch>
+              <Route path="/home" render={(props) => <Home {...props} />} />
+              <Route
+                path="/dashboard"
+                render={(props) => <Dashboard {...props} />}
+              />
+              <Redirect to="/home" />
+            </Switch>
+          </BrowserRouter>
+        </div>
+        <Footer />
+      </AppProvider>
     </>
   );
 }
