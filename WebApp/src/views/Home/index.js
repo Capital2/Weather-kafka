@@ -36,7 +36,7 @@ const Home = () => {
   } = useAppState();
 
   // useEffect to to track if the default city state is not null to extract the topic name associated to it from the backend
-  useEffect(() => {    
+  useEffect(() => {
     if (defaultCity !== null) {
       const [lat, lon] = defaultCity.value.split("$");
 
@@ -44,38 +44,37 @@ const Home = () => {
         `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
         {
           method: "GET",
-          headers: { "Content-Type": "application/json" },         
+          headers: { "Content-Type": "application/json" },
         }
       )
         .then((response) => response.json())
         .then((data) => {
           // Set the default topic name in the global app state
-          setDefaultTopic(data.topic_name)
+          setDefaultTopic(data.topic_name);
 
           // Get data associated to that topic from the localStorage
-          if(messages[data.topic_name]){
-            setDefaultWeather(messages[data.topic_name])
+          if (messages[data.topic_name]) {
+            setDefaultWeather(messages[data.topic_name]);
           }
 
           // Subscribe to my default app city
           // Before subscribing check if there is data alredy set in the localstorage
-          subscribe([data.topic_name])
+          subscribe([data.topic_name]);
         })
         .catch((error) => console.error(error));
     }
   }, [defaultCity]);
 
-  // useEffect to manage the subcriptions to the topics
+  // useEffect to manage the subcriptions cleanup
   // useEffect(() => {
   //   // Subscribe to Kafka topics when component mounts
-  //   subscribe(["P36D847569TP11D09386"]);
+  //   // subscribe(["P36D847569TP11D09386"]);
 
   //   return () => {
   //     // Unsubscribe from Kafka topics when component unmounts
   //     unsubscribe(["P36D847569TP11D09386"]);
   //   };
   // }, [subscribe, unsubscribe]);
-
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
