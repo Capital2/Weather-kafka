@@ -25,12 +25,14 @@ const Forecast = ({ data }) => {
     WEEK_DAYS.slice(0, dayInAWeek)
   );
 
-  console.log("Forecast days ", forecastDays);
+  // console.log("Forecast days ", forecastDays);
+  console.log("the forecast field")
+  console.log(data.list)
   return (
     <>
       <label className="title">Daily</label>
       <Accordion allowZeroExpanded>
-        {data.list.splice(0, 7).map((item, index) => (
+        {data.list !== undefined && data.list.splice(0, 7).map((item, index) => (
           <AccordionItem key={index}>
             <AccordionItemHeading>
               <AccordionItemButton>

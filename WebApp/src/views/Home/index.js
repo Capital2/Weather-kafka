@@ -10,32 +10,42 @@ import WeatherMap from "components/WeatherMap/WeatherMap";
 
 import useKafkaConsumer from "hooks/useKafkaConsumer";
 import { useAppState } from "hooks/useAppContext";
+import Skeleton from "react-loading-skeleton";
+
+import {
+  weather as weatherFake,
+  forecast as forecastFake,
+  alerts as alertsFake,
+} from "data/fakeOpenWeatherAPIData";
 
 const Home = () => {
+  // States required for the different components
   const [defaultWeahter, setDefaultWeather] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [alertWeather, setAlertWeather] = useState(null);
+  const [searchingFor, setSearchingFor] = useState(null);
+  const [subscriptionsTracker, setSubscriptionsTracker] = useState([]);
 
+  // Methods to subscribe, unsubscribe to topics and the list of messages we got
   const { subscribe, unsubscribe, messages } = useKafkaConsumer(
     process.env.REACT_APP_KAFKA_CONSUMER_IP,
     process.env.REACT_APP_KAFKA_CONSUMER_PORT
   );
 
+  // States and methods extracted from the App global state
   const {
-    data,
     defaultCity,
     email,
     defaultTopic,
     topics,
-    pushData,
     setDefaultCity,
     setEmail,
     setDefaultTopic,
     setTopics,
   } = useAppState();
 
-  // useEffect to to track if the default city state is not null to extract the topic name associated to it from the backend
+  // useEffect to track if the default city state is not null to extract the topic name associated to it from the backend
   useEffect(() => {
     if (defaultCity !== null) {
       const [lat, lon] = defaultCity.value.split("$");
@@ -51,15 +61,34 @@ const Home = () => {
         .then((data) => {
           // Set the default topic name in the global app state
           setDefaultTopic(data.topic_name);
-
-          // Get data associated to that topic from the localStorage
+          // Check if the data already exists in the local storage
           if (messages[data.topic_name]) {
-            setDefaultWeather(messages[data.topic_name]);
+            setCurrentWeather({
+              cityLabel: defaultCity.label,
+              ...messages[data.topic_name].weather,
+            });
+            setForecast({
+              cityLabel: defaultCity.label,
+              ...messages[data.topic_name].forecast,
+            });
+            setAlertWeather({
+              cityLabel: defaultCity.label,
+              ...messages[data.topic_name].alerts,
+            });
+            setDefaultWeather({
+              cityLabel: defaultCity.label,
+              ...messages[data.topic_name].weather,
+            });
           }
-
           // Subscribe to my default app city
-          // Before subscribing check if there is data alredy set in the localstorage
-          subscribe([data.topic_name]);
+          if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
+            subscribe([data.topic_name]);
+            setSubscriptionsTracker([...subscriptionsTracker, data.topic_name]);
+          }
+          setSearchingFor({
+            topicName: data.topic_name,
+            label: defaultCity.label,
+          });
         })
         .catch((error) => console.error(error));
     }
@@ -67,46 +96,102 @@ const Home = () => {
 
   // useEffect to manage the subcriptions cleanup
   // useEffect(() => {
-  //   // Subscribe to Kafka topics when component mounts
-  //   // subscribe(["P36D847569TP11D09386"]);
-
   //   return () => {
   //     // Unsubscribe from Kafka topics when component unmounts
-  //     unsubscribe(["P36D847569TP11D09386"]);
+  //     let topics_names = Object.keys(messages).map(
+  //       (message) => message.topic_name
+  //     );
+  //     console.log("topics names that im going to unsubscribe from");
+  //     console.log(topics_names);
+
+  //     if (topics_names.length > 0) {
+  //       unsubscribe([...topics_names]);
+  //     }
   //   };
-  // }, [subscribe, unsubscribe]);
+  // }, [unsubscribe]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
     const [lat, lon] = searchDataValue.value.split("$");
+    fetch(
+      `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
+          subscribe([data.topic_name]);
+          setSubscriptionsTracker([...subscriptionsTracker, data.topic_name]);
+        } else {
+          // The user is already subscribed to the topic data.topic_name
+          // Check if we have already pulled data realted to that topic (old data stored in the messages array)
+          if (messages[data.topic_name]) {
+            // // Set the data that we already have
+            // setCurrentWeather({
+            //   cityLabel: searchDataValue.label,
+            //   ...messages[data.topic_name].weather,
+            // });
+            // setForecast({
+            //   cityLabel: searchDataValue.label,
+            //   ...messages[data.topic_name].forecast,
+            // });
+            // setAlertWeather({
+            //   cityLabel: searchDataValue.label,
+            //   ...messages[data.topic_name].alerts,
+            // });
 
-    const currentWeatherFetch = fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}&units=metric`
-    );
-    const forecastFetch = fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}&units=metric`
-    );
-    const alertWeatherFetch = fetch(
-      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,daily&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
-    );
-
-    Promise.all([currentWeatherFetch, forecastFetch, alertWeatherFetch])
-      .then(async (response) => {
-        const weatherResponse = await response[0].json();
-        const forecastResponse = await response[1].json();
-        const alertResponse = await response[2].json();
-
-        setCurrentWeather({
-          cityLabel: searchDataValue.label,
-          ...weatherResponse,
-        });
-        setForecast({ cityLabel: searchDataValue.label, ...forecastResponse });
-        console.log("alerts weather response");
-        console.log(alertResponse);
-        setAlertWeather({ cityLabel: searchDataValue.label, ...alertResponse });
+            // For test purpose
+            setCurrentWeather({
+              cityLabel: defaultCity.label,
+              ...weatherFake,
+            });
+            setForecast({
+              cityLabel: defaultCity.label,
+              ...forecastFake,
+            });
+            setAlertWeather({
+              cityLabel: defaultCity.label,
+              ...alertsFake,
+            });
+            setDefaultWeather({
+              cityLabel: defaultCity.label,
+              ...weatherFake,
+            });
+            // End for test purpose
+          } else {
+            // Let the user see a loading skeletons
+            setCurrentWeather(null);
+            setForecast(null);
+            setAlertWeather(null);
+          }
+        }
+        // If new data came for that topic displayed immediatly
+        setSearchingFor({ ...searchDataValue, topicName: data.topic_name });
       })
       .catch((error) => console.error(error));
   };
+
+  // Listen for upcomping messages from the kafka consumer
+  useEffect(() => {
+    if (searchingFor !== null && messages[searchingFor.topicName]) {
+      setCurrentWeather({
+        cityLabel: searchingFor.label,
+        ...weatherFake,
+      });
+      setForecast({ cityLabel: searchingFor.label, ...forecastFake });
+      setAlertWeather({ cityLabel: searchingFor.label, ...alertsFake });
+      // Check if the message that we receive belongs to the user's default city to update the home header component
+      if (searchingFor.topicName === defaultTopic) {
+        setDefaultWeather({
+          cityLabel: searchingFor.label,
+          ...weatherFake,
+        });
+      }
+    }
+  }, [messages]);
 
   return (
     <>
@@ -119,7 +204,7 @@ const Home = () => {
               <br />
               <Search onSearchChange={onSearchChange} />
               <br />
-              <p className="description">
+              <p className="description text-left">
                 Paper Kit comes with 100 custom icons made by our friends from
                 NucleoApp. The official package contains over 2.100 thin icons
                 which are looking great in combination with Paper Kit Make sure
@@ -132,7 +217,7 @@ const Home = () => {
                 href="/nucleo-icons"
                 target="_blank"
               >
-                View Demo Icons
+                Subscribe
               </Button>
               <Button
                 className="btn-round ml-1"
@@ -141,14 +226,18 @@ const Home = () => {
                 outline
                 target="_blank"
               >
-                View All Icons
+                Unsubscribe
               </Button>
             </Col>
-            {currentWeather && (
-              <Col lg="6" md="12">
+            <Col lg="6" md="12">
+              {currentWeather ? (
                 <CurrentWeather data={currentWeather} />
-              </Col>
-            )}
+              ) : (
+                <div style={{ position: "relative", top: "50px" }}>
+                  <Skeleton count={10} baseColor="#202020" />
+                </div>
+              )}
+            </Col>
           </Row>
         </Container>
       </div>{" "}
@@ -164,11 +253,15 @@ const Home = () => {
                 what you can built with this powerful kit.
               </p>
             </Col>
-            {forecast && (
-              <Col className="ml-auto mr-auto text-center" md="12">
+            <Col className="ml-auto mr-auto text-center" md="12">
+              {forecast ? (
                 <Forecast data={forecast} />
-              </Col>
-            )}
+              ) : (
+                <div style={{ position: "relative", top: "20px" }}>
+                  <Skeleton count={10} baseColor="#202020" />
+                </div>
+              )}
+            </Col>
           </Row>
         </Container>
       </div>
@@ -184,15 +277,23 @@ const Home = () => {
                 what you can built with this powerful kit.
               </p>
             </Col>
+            <Col className="ml-auto mr-auto text-center" md="12">
+              {currentWeather == null ||
+              forecast == null ||
+              alertWeather == null ? (
+                <Skeleton count={10} baseColor="#202020" />
+              ) : (
+                <WeatherMap
+                  data={{
+                    currentData: currentWeather,
+                    forecastData: forecast,
+                    alertData: alertWeather,
+                  }}
+                />
+              )}
+            </Col>
           </Row>
         </Container>
-        <WeatherMap
-          data={{
-            currentData: currentWeather,
-            forecastData: forecast,
-            alertData: alertWeather,
-          }}
-        />
       </div>
     </>
   );

@@ -36,11 +36,11 @@ const WeatherMap = ({ data }) => {
     }
   }, [currentData]);
 
-  if (currentData == null || forecastData == null || alertData == null) {
-    return null;
-  }
+  // if (currentData == null || forecastData == null || alertData == null) {
+  //   return null;
+  // }
   return (
-    <MapContainer center={center} zoom={zoom} scrollWheelZoom={false}>
+    <MapContainer center={center} zoom={zoom}>
       <ChangeView center={center} zoom={zoom} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
