@@ -10,6 +10,8 @@ export const useAppContext = () => {
   const [email, setEmail] = useState(null); // user email
   const [defaultTopic, setDefaultTopic] = useState(null); // The default topic name
   const [topics, setTopics] = useState(null); // list of topics extracted from localstorage
+  const [notifications, setNotifications] = ([]) // The array that contains all notifications
+  const [isAlert, setIsAlert] = useState(false) // Flag to track when to notify the user that he have new notifications
 
   // For test purpose
   // useEffect(() => {
@@ -21,6 +23,15 @@ export const useAppContext = () => {
   const pushData = (newData) => {
     setData(newData);
   };
+
+  const addNotification = (notification) => {
+    // Add new notification at the head of the array
+    // ...
+  }
+
+  const deleteNotification = () => {
+    // Delete a notification from the array of notifications based on the index
+  }
 
   return {
     data,

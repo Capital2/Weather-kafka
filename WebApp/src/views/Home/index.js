@@ -28,10 +28,11 @@ const Home = () => {
   const [subscriptionsTracker, setSubscriptionsTracker] = useState([]);
 
   // Methods to subscribe, unsubscribe to topics and the list of messages we got
-  const { subscribe, unsubscribe, messages } = useKafkaConsumer(
-    process.env.REACT_APP_KAFKA_CONSUMER_IP,
-    process.env.REACT_APP_KAFKA_CONSUMER_PORT
-  );
+  const { subscribe, unsubscribe, messages, subscriptions, setSubscriptions } =
+    useKafkaConsumer(
+      process.env.REACT_APP_KAFKA_CONSUMER_IP,
+      process.env.REACT_APP_KAFKA_CONSUMER_PORT
+    );
 
   // States and methods extracted from the App global state
   const {
@@ -59,13 +60,11 @@ const Home = () => {
       )
         .then((response) => response.json())
         .then((data) => {
-          console.log("the data")
-          console.log(data)
-
           // Set the default topic name in the global app state
           setDefaultTopic(data.topic_name);
           // Check if the data already exists in the local storage
           if (messages[data.topic_name]) {
+            // To uncomment
             // setCurrentWeather({
             //   cityLabel: defaultCity.label,
             //   ...messages[data.topic_name].weather,
@@ -82,7 +81,7 @@ const Home = () => {
             //   cityLabel: defaultCity.label,
             //   ...messages[data.topic_name].weather,
             // });
-            
+
             setCurrentWeather({
               cityLabel: defaultCity.label,
               ...weatherFake,
@@ -118,11 +117,11 @@ const Home = () => {
   useEffect(() => {
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
-      let topics_names = []
+      let topics_names = [];
       for (const property in messages) {
-        topics_names.push(messages[property].topic_name)
-      }      
-      
+        topics_names.push(messages[property].topic_name);
+      }
+
       if (topics_names.length > 0) {
         unsubscribe([...topics_names]);
       }
@@ -194,12 +193,21 @@ const Home = () => {
   };
 
   const handleSubscribe = () => {
-    
-  }
+    // To avoid duplicate subscription to the default city topic
+    // We are always subscribed to our default city
+    if (searchingFor && searchingFor.topicName !== defaultTopic) {
+      setSubscriptions([...subscriptions, searchingFor.topicName]);
+    }
+  };
 
   const handleUnSubscribe = () => {
-
-  }
+    if (searchingFor) {
+      let tmpSubscriptions = subscriptions.filter(
+        (subscription) => subscription !== searchingFor.topicName
+      );
+      setSubscriptions(tmpSubscriptions);
+    }
+  };
 
   // Listen for upcomping messages from the kafka consumer
   useEffect(() => {
@@ -243,6 +251,12 @@ const Home = () => {
                 color="danger"
                 href="/nucleo-icons"
                 target="_blank"
+                onClick={handleSubscribe}
+                disabled={
+                  searchingFor != null &&
+                  (subscriptions.indexOf(searchingFor.topicName) !== -1 ||
+                    searchingFor.topicName === defaultTopic)
+                }
               >
                 Subscribe
               </Button>
@@ -252,6 +266,12 @@ const Home = () => {
                 href="https://nucleoapp.com/?ref=1712"
                 outline
                 target="_blank"
+                onClick={handleUnSubscribe}
+                disabled={
+                  searchingFor != null &&
+                  (subscriptions.indexOf(searchingFor.topicName) === -1 ||
+                    searchingFor.topicName === defaultTopic)
+                }
               >
                 Unsubscribe
               </Button>

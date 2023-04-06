@@ -14,9 +14,13 @@ import {
 } from "reactstrap";
 import { Sidebar } from "../Sidebar/Sidebar";
 
+import { useAppState } from "hooks/useAppContext";
+
 function AppNavbar({ toggleInitModal }) {
   const [navbarColor, setNavbarColor] = React.useState("navbar-transparent");
   const [navbarCollapse, setNavbarCollapse] = React.useState(false);
+
+  const {  } = useAppState()
 
   const sidebarRef = useRef();
   const toggleSidebar = () => {
@@ -88,8 +92,8 @@ function AppNavbar({ toggleInitModal }) {
                   title="Notifications"
                   onClick={toggleSidebar}
                 >
-                  <i className="fa fa-bell" />
-                  <p className="d-lg-none">Notifications</p>
+                  <i className="fa fa-bell shake "  />
+                  <p className="d-lg-none ">Notifications</p>
                 </NavLink>
               </NavItem>
               <NavItem>
