@@ -44,6 +44,8 @@ const Init = forwardRef((props, ref) => {
     localStorage.setItem("defaultCity", JSON.stringify(config.defaultCity));
     localStorage.setItem("email", config.email);
 
+    setDefaultCity(config.defaultCity);
+    setEmail(config.email);
     setInitModal(false);
   };
 
@@ -56,7 +58,6 @@ const Init = forwardRef((props, ref) => {
     // Check if the user set a default city and an email address
     let defaultCity = localStorage.getItem("defaultCity");
     let email = localStorage.getItem("email");
-    let messages = localStorage.getItem("messages")
     if (defaultCity === null) {
       // Launch the modal to force the user to setup the dafault city and his email address
       setInitModal(true);

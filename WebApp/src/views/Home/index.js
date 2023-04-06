@@ -59,25 +59,45 @@ const Home = () => {
       )
         .then((response) => response.json())
         .then((data) => {
+          console.log("the data")
+          console.log(data)
+
           // Set the default topic name in the global app state
           setDefaultTopic(data.topic_name);
           // Check if the data already exists in the local storage
           if (messages[data.topic_name]) {
+            // setCurrentWeather({
+            //   cityLabel: defaultCity.label,
+            //   ...messages[data.topic_name].weather,
+            // });
+            // setForecast({
+            //   cityLabel: defaultCity.label,
+            //   ...messages[data.topic_name].forecast,
+            // });
+            // setAlertWeather({
+            //   cityLabel: defaultCity.label,
+            //   ...messages[data.topic_name].alerts,
+            // });
+            // setDefaultWeather({
+            //   cityLabel: defaultCity.label,
+            //   ...messages[data.topic_name].weather,
+            // });
+            
             setCurrentWeather({
               cityLabel: defaultCity.label,
-              ...messages[data.topic_name].weather,
+              ...weatherFake,
             });
             setForecast({
               cityLabel: defaultCity.label,
-              ...messages[data.topic_name].forecast,
+              ...forecastFake,
             });
             setAlertWeather({
               cityLabel: defaultCity.label,
-              ...messages[data.topic_name].alerts,
+              ...alertsFake,
             });
             setDefaultWeather({
               cityLabel: defaultCity.label,
-              ...messages[data.topic_name].weather,
+              ...weatherFake,
             });
           }
           // Subscribe to my default app city
@@ -95,20 +115,19 @@ const Home = () => {
   }, [defaultCity]);
 
   // useEffect to manage the subcriptions cleanup
-  // useEffect(() => {
-  //   return () => {
-  //     // Unsubscribe from Kafka topics when component unmounts
-  //     let topics_names = Object.keys(messages).map(
-  //       (message) => message.topic_name
-  //     );
-  //     console.log("topics names that im going to unsubscribe from");
-  //     console.log(topics_names);
-
-  //     if (topics_names.length > 0) {
-  //       unsubscribe([...topics_names]);
-  //     }
-  //   };
-  // }, [unsubscribe]);
+  useEffect(() => {
+    return () => {
+      // Unsubscribe from Kafka topics when component unmounts
+      let topics_names = []
+      for (const property in messages) {
+        topics_names.push(messages[property].topic_name)
+      }      
+      
+      if (topics_names.length > 0) {
+        unsubscribe([...topics_names]);
+      }
+    };
+  }, [unsubscribe]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
@@ -173,6 +192,14 @@ const Home = () => {
       })
       .catch((error) => console.error(error));
   };
+
+  const handleSubscribe = () => {
+    
+  }
+
+  const handleUnSubscribe = () => {
+
+  }
 
   // Listen for upcomping messages from the kafka consumer
   useEffect(() => {

@@ -7,6 +7,7 @@ const io = require("socket.io")(server, {
   },
 });
 
+let id = 0
 const kafka = new Kafka({
   clientId: "my-app",
   brokers: [`${process.env.KAFKA_BROKER_IP}:${process.env.KAFKA_BROKER_PORT}`],
@@ -18,7 +19,7 @@ const consumers = new Map();
 // Handle socket connections
 io.on("connection", (socket) => {
   console.log("Socket connected");
-
+  id++
   // Initialize an empty list of consumers for this socket connection
   consumers.set(socket.id, []);
 
@@ -39,7 +40,7 @@ io.on("connection", (socket) => {
       topics.forEach(async (topic) => {
         console.log(`Creating Kafka consumer for topic ${topic}`);
 
-        const consumer = kafka.consumer({ groupId: "test-group" });
+        const consumer = kafka.consumer({ groupId: `test-group-${id}` });
 
         await consumer.connect();
         await consumer.subscribe({ topic, fromBeginning: true });
