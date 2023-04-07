@@ -62,7 +62,7 @@ const Home = () => {
   useEffect(() => {
     if (defaultCity !== null) {
       const [lat, lon] = defaultCity.value.split("$");
-  
+
       fetch(
         `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
         {
@@ -71,7 +71,7 @@ const Home = () => {
         }
       )
         .then((response) => response.json())
-        .then((data) => { 
+        .then((data) => {
           // Set the default topic name in the global app state
           setDefaultTopic(data.topic_name);
           // Check if the data already exists in the local storage
@@ -118,12 +118,11 @@ const Home = () => {
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
       let topics_names = [];
-      let tmpMessages = {...messages}
-      // delete myObj.foo;
-      for (const property in messages) {       
-        topics_names.push(messages[property].topic_name);
+      let tmpMessages = { ...messages }      
+      delete tmpMessages.lastTopicUpdated
+      for (const property in tmpMessages) {
+        topics_names.push(tmpMessages[property].topic_name);
       }
-
       if (topics_names.length > 0) {
         unsubscribe([...topics_names]);
       }
@@ -132,10 +131,7 @@ const Home = () => {
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
-    const [lat, lon] = searchDataValue.value.split("$");
-    console.log("the search bar feature")
-    console.log("lat = ", lat)
-    console.log("lon = ", lon)
+    const [lat, lon] = searchDataValue.value.split("$");    
 
     fetch(
       `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
@@ -149,7 +145,7 @@ const Home = () => {
         if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
           subscribe([data.topic_name]);
           setSubscriptionsTracker([...subscriptionsTracker, data.topic_name]);
-        } else {
+        } else {         
           // The user is already subscribed to the topic data.topic_name
           // Check if we have already pulled data realted to that topic (old data stored in the messages array)
           if (messages[data.topic_name]) {
@@ -174,6 +170,8 @@ const Home = () => {
           }
         }
         // If new data came for that topic it will displayed immediatly
+        console.log("Search HTTP call")
+        console.log(data.topic_name)
         setSearchingFor({ ...searchDataValue, topicName: data.topic_name });
       })
       .catch((error) => console.error(error));
@@ -201,37 +199,44 @@ const Home = () => {
     // Real time notifications (Check if there is alerts)
     console.log("data coming in real time");
     console.log(messages);
-    
+
     if (Object.keys(messages).length > 0 && !fromCache) {
       // Notification section
       // Going to be changed after the code integration to retreive data from messages["lastTopicUpdated"] ---> messages[messages["lastTopicUpdated"]].alerts
-      if (alertsFake.alerts.length > 0) {
+      if (typeof (messages[messages["lastTopicUpdated"]].alerts) !== "string") {
+        // Add the shake notification animation
         if (!isAlert) {
           setIsAlert(true);
         }
-        alertsFake.alerts.forEach(alert => alert.seen = false);
-        setNotifications([...notifications, ...alertsFake.alerts]);
-        setNewNotifications(newNotifications + alertsFake.alerts.length);
+        // Set the seen flag for each alert to false
+        messages[messages["lastTopicUpdated"]].alerts.forEach(alert => alert.seen = false);
+        // Update the notifications array
+        setNotifications([...notifications, ...messages[messages["lastTopicUpdated"]].alerts]);
+        // Update the notification number
+        setNewNotifications(newNotifications + messages[messages["lastTopicUpdated"]].alerts.length);
       }
 
       // Update the current, forecast and map component section
+     
       if (searchingFor !== null && messages[searchingFor.topicName]) {
+        console.log("functions to trigger changes")
+        console.log(messages[searchingFor.topicName])
+        console.log("----")
         setCurrentWeather({
           cityLabel: searchingFor.label,
-          ...weatherFake,
+          ...messages[searchingFor.topicName].weather,
         });
-        setForecast({ cityLabel: searchingFor.label, ...forecastFake });
-        setAlertWeather({ cityLabel: searchingFor.label, ...alertsFake });
+        setForecast({ cityLabel: searchingFor.label, ...messages[searchingFor.topicName].forecast });
+        (typeof (messages[searchingFor.topicName].alerts) !== "string") ? (setAlertWeather({ cityLabel: searchingFor.label, ...messages[searchingFor.topicName].alerts })) : (setAlertWeather({ cityLabel: searchingFor.label, ...[] }))
         // Check if the message that we receive belongs to the user's default city to update the home header component
         if (searchingFor.topicName === defaultTopic) {
           setDefaultWeather({
             cityLabel: searchingFor.label,
-            ...weatherFake,
+            ...messages[searchingFor.topicName].weather,
           });
         }
       }
     }
-    
   }, [messages]);
 
   return (
@@ -332,8 +337,8 @@ const Home = () => {
             </Col>
             <Col className="ml-auto mr-auto text-center" md="12">
               {currentWeather == null ||
-              forecast == null ||
-              alertWeather == null ? (
+                forecast == null ||
+                alertWeather == null ? (
                 <Skeleton count={10} baseColor="#202020" />
               ) : (
                 <WeatherMap
