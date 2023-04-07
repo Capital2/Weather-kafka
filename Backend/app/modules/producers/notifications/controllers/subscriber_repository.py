@@ -16,7 +16,7 @@ class Subscriber(Base):
 
 class SubscriberRepository:
     def __init__(self) -> None:
-        engine = create_engine("mysql+pymysql://root@localhost/weather") # TODO: replace this with mysql docker image url
+        engine = create_engine("mysql+pymysql://root:root@sql-db:3306/weather")
         Session = sessionmaker(bind=engine)
         self.session = Session()
         Base.metadata.create_all(engine)

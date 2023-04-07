@@ -1,9 +1,10 @@
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from jinja2 import Template
 
-from subscriber_repository import subscriber_repository
+from .subscriber_repository import subscriber_repository
 
-NOTIFICATION_EMAIL_TEMPLATE = '../templates/notification_email.html'
+import asyncio
+NOTIFICATION_EMAIL_TEMPLATE = 'notifications/templates/notification_email.html'
 
 class AlertNotifications:
     def __init__(self) -> None:
@@ -25,8 +26,13 @@ class AlertNotifications:
     async def send_email_to_subscribers(self, weather_alert: dict, crypted_city_coords: str) -> None:
         body = self._render_template(alert=weather_alert)
         
-        subscribers = [subscriber.email for subscriber in subscriber_repository.get_subscribers_by_city(crypted_city_coords)]
-        
+        subscribers = []
+        for subscriber in subscriber_repository.get_subscribers_by_city(crypted_city_coords):
+            if subscriber.is_sent: # skip if already sent
+                continue
+            subscribers.append(subscriber.email)
+        if not subscribers:
+            return
         subject = f"Extreme Weather Alert from { weather_alert['sender_name'] }"
         
         message_schema = MessageSchema(

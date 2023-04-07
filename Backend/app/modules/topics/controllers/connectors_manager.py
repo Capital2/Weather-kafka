@@ -1,10 +1,10 @@
 import requests
 from cassandra.cluster import Cluster
 
-from topics_manager import TopicsManager
+from .topics_manager import topics_manager
 
 class ConnectorsManager:
-    WORKER_IP = "localhost"
+    WORKER_IP = "datastax-connect"
     PORT = 8083
 
     URL = f"http://{WORKER_IP}:{PORT}/connectors"
@@ -42,7 +42,7 @@ class ConnectorsManager:
             cassandra.cluster.NoHostAvailable: If the Cassandra cluster is not available or cannot be reached.
         """
 
-        cluster = Cluster(['localhost']) 
+        cluster = Cluster(["cassandra"]) 
         session = cluster.connect('weather')
 
         # Create table
@@ -68,7 +68,7 @@ class ConnectorsManager:
             Exception: If the specified topic does not exist, or if the creation of the new connector fails for any other reason.
         """
 
-        if topic_name not in TopicsManager().list_topics():
+        if topic_name not in topics_manager.list_topics():
             raise Exception(f'Topic {topic_name} does not exist !')
         encrypted_city_coordinates = topic_name.lower()
         self.create_cassandra_table(encrypted_city_coordinates)
@@ -137,4 +137,6 @@ class ConnectorsManager:
             raise Exception(response.json())
         
         return self.list_connectors()
+    
+connectors_manager = ConnectorsManager()
 
