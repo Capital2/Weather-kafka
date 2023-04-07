@@ -14,6 +14,7 @@ export const useAppContext = () => {
   const [notifications, setNotifications] = useState([]); // The array that contains all notifications
   const [newNotifications, setNewNotifications] = useState(0); // THe number of new notifications
   const [isAlert, setIsAlert] = useState(false); // Flag to track when to notify the user that he have new notifications
+  const [cacheDataRetrieval, setCacheDataRetrieval] = useState(true);
 
   const pushData = (newData) => {
     setData(newData);
@@ -35,23 +36,12 @@ export const useAppContext = () => {
   }, []);
 
   useEffect(() => {
-    if (defaultTopic !== null) {
-      // Write the unseen notifications to the localstorage
-      console.log("here hehi");
+    // Write the unseen notifications to the localstorage
+    let unseenNotifications = notifications.filter(
+      (notification) => !notification.seen
+    );
 
-      let unseenNotifications = notifications.filter(
-        (notification) => !notification.seen
-      );
-
-      localStorage.setItem(
-        "notifications",
-        JSON.stringify(unseenNotifications)
-      );
-
-      return(() => {
-        localStorage.setItem("messages", JSON.stringify([]))
-      })
-    }
+    localStorage.setItem("notifications", JSON.stringify(unseenNotifications));
   }, [notifications]);
 
   return {
@@ -63,6 +53,7 @@ export const useAppContext = () => {
     isAlert,
     notifications,
     newNotifications,
+    cacheDataRetrieval,
     pushData,
     setDefaultCity,
     setEmail,
@@ -71,6 +62,7 @@ export const useAppContext = () => {
     setIsAlert,
     setNotifications,
     setNewNotifications,
+    setCacheDataRetrieval,
   };
 };
 
@@ -92,6 +84,7 @@ export const useAppState = () => {
     isAlert,
     notifications,
     newNotifications,
+    cacheDataRetrieval,
     pushData,
     setDefaultCity,
     setEmail,
@@ -100,6 +93,7 @@ export const useAppState = () => {
     setIsAlert,
     setNotifications,
     setNewNotifications,
+    setCacheDataRetrieval
   } = useContext(AppContext);
 
   return {
@@ -111,6 +105,7 @@ export const useAppState = () => {
     isAlert,
     notifications,
     newNotifications,
+    cacheDataRetrieval,
     pushData,
     setDefaultCity,
     setEmail,
@@ -119,5 +114,6 @@ export const useAppState = () => {
     setIsAlert,
     setNotifications,
     setNewNotifications,
+    setCacheDataRetrieval
   };
 };

@@ -5,6 +5,7 @@ const useKafkaConsumer = (ipAddress, port) => {
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState({});
   const [subscriptions, setSubscriptions] = useState([]);
+  
 
   useEffect(() => {
     const newSocket = io(`http://${ipAddress}:${port}`);

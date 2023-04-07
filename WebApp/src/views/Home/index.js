@@ -50,6 +50,8 @@ const Home = () => {
     setDefaultTopic,
     setTopics,
     setIsAlert,
+    cacheDataRetrieval,
+    setCacheDataRetrieval
   } = useAppState();
 
   // useEffect to track if the default city state is not null to extract the topic name associated to it from the backend
@@ -129,14 +131,15 @@ const Home = () => {
     subscribe([...subscriptions]);
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
-      let topics_names = [];
-      for (const property in messages) {
-        topics_names.push(messages[property].topic_name);
-      }
+      // let topics_names = [];
+      // for (const property in messages) {
+      //   topics_names.push(messages[property].topic_name);
+      // }
 
-      if (topics_names.length > 0) {
-        unsubscribe([...topics_names]);
-      }
+      // if (topics_names.length > 0) {
+      //   unsubscribe([...topics_names]);
+      // }
+      unsubscribe([defaultTopic])
     };
   }, [subscribe, unsubscribe]);
 
@@ -227,7 +230,7 @@ const Home = () => {
     console.log("data coming in real time");
     console.log(messages);
     
-    if (Object.keys(messages).length > 0) {
+    if (Object.keys(messages).length > 0 && !cacheDataRetrieval) {
       // Notification section
       // Going to be changed after the code integration to retreive data from messages["lastTopicUpdated"] ---> messages[messages["lastTopicUpdated"]].alerts
       if (alertsFake.alerts.length > 0) {
@@ -256,6 +259,10 @@ const Home = () => {
         }
       }
     }
+
+    if (Object.keys(messages).length > 0 && cacheDataRetrieval) {
+      setCacheDataRetrieval(false)
+    }    
   }, [messages]);
 
   return (
