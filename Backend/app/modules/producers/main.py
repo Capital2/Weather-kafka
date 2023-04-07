@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.INFO)
 
 pm = ProductionManager([])  
 
-pm.add_city("P36D847569TP11D09386")
+pm.add_city("P51D1657TP10D4515")
 print(pm.citylist)
 
 input("waiting 2 ...")

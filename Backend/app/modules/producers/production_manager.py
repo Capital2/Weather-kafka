@@ -3,13 +3,15 @@ import json
 import logging
 from multiprocessing import Process, Manager
 import os
-from OpenWeatherApi import OpenWeatherApi
+from .OpenWeatherApi import OpenWeatherApi
 from time import sleep
 from kafka import KafkaProducer, errors
-from api_exceptions import ApiKeyNotWorkingException, LimitReachedException
+from .api_exceptions import ApiKeyNotWorkingException, LimitReachedException
 
-from CoordinatesEncoder import CoordinatesEncoder
+from .CoordinatesEncoder import CoordinatesEncoder
+
 class ProductionManager:
+    
     """
     A singleton class that spawns kafka producers and manages them, 
     brabbi instance barka chabeb be5el 3ala 7al ma5ir rahi singleton
@@ -20,7 +22,7 @@ class ProductionManager:
 
     """
     
-    def __init__(self, citylist: list, config_path = "config.cfg", bootstrap_server='0.0.0.0:9092', timeout=60*10) -> None:
+    def __init__(self, citylist: list, config_path = "./modules/producers/config.cfg", bootstrap_server='20.16.155.55:9092', timeout=60*10) -> None:
         """Args:
             citylist: Initial list of ints representing cityids to produce to
             config_path: path to configuration file
@@ -34,18 +36,17 @@ class ProductionManager:
         if not os.path.exists(config_path):
             raise ValueError(f"the file path provided {config_path} could not be resolved")
         config.read(config_path)
-        keys = json.loads(config.get("Api","keys"))
-
+        self.keys = json.loads(config.get("Api","keys"))
         # every process has a list of cities that produces for them
         # manager.list is a proxy list that enables us to exchange data from and to subprocesses 
         # (dict.fromkeys removes duplicates)
-        self._procinfo = [Manager().list() for k in keys]
+        self._procinfo = [Manager().list() for k in self.keys]
         self.add_list_city(list(dict.fromkeys(citylist)))
 
-        if not keys:
+        if not self.keys:
             raise ValueError("Please provide at least one Api key in the configuration file")
         # every process produces to a sublist of cities balanced by the add_city class method
-        self._processes = [Process(target=self._produce, args=(keys[i], self._procinfo[i], i, 0, bootstrap_server)) for i in range(len(keys))]
+        self._processes = [Process(target=self._produce, args=(self.keys[i], self._procinfo[i], i, 0, bootstrap_server)) for i in range(len(self.keys))]
         for proc in self._processes:
             proc.start()
     
@@ -65,7 +66,7 @@ class ProductionManager:
                 return True
         return False
     
-    def add_city(self, cityid):
+    def add_city(self, cityid: str):
         """adds a city to the producers pool"""
         # when adding a city we need to preserve some kind of balance, we check for the one that has the
         # lowest num of cities
@@ -76,16 +77,46 @@ class ProductionManager:
             if len(lowest) >  len(prod):
                 lowest = prod
         lowest.append(cityid)
+
+        # Produce for the first time
+        for api_key in self.keys:
+            try:
+                self.produce_first_time(cityid, api_key)
+            except (LimitReachedException, ApiKeyNotWorkingException) as e:
+                logging.error(f"ApiKeyNotWorkingException raised, while pushing to topic {cityid} for the first time")
+                continue
+            break # if we get here then the api key is working and we can break the loop
+
+    
+    def produce_first_time(self, cityid: str, api_key: str , bootstrap_server='20.16.155.55:9092'):
+        """produces for the first time to a cityid topic so that we can have some data to work with"""
+        
+        producer = KafkaProducer(bootstrap_servers=bootstrap_server)
+
+        # Decoding cityid to coordinates
+        latitude, longitude = CoordinatesEncoder.decode(cityid)
+        api = OpenWeatherApi(params = {
+            'lat': latitude,
+            'lon': longitude,
+            'units': 'metric',
+            'appid': api_key
+        })
+        data = api.get_all()
+            
+        # serializing
+        data = json.dumps(data, indent=2).encode('utf-8')
+        try:
+            producer.send(str(cityid), data)
+        except errors.KafkaTimeoutError as e:
+            logging.error(f"KafkaTimeoutError raised, while pushing to topic {cityid} for the first time")
+            
     
     def add_list_city(self, cityidlist : list):
         for item in cityidlist:
             self.add_city(item)
+
     
-    def delete_city(self, cityid):
-        pass
-        # TODO
-    
-    def _produce(self, apikey: str, cityidlist: list, index, calls = 0, bootstrap_server='0.0.0.0:9092'):
+    def _produce(self, apikey: str, cityidlist: list, index, calls = 0, bootstrap_server='20.16.155.55:9092'):
         """production loop used for multiprocessing"""
         logging.info(f"process {os.getpid()} with {index=} started producing")
         try :
@@ -106,7 +137,8 @@ class ProductionManager:
                     except (LimitReachedException, ApiKeyNotWorkingException) as e:
                         logging.error(f"process {os.getpid()} with {index=} has an api key {apikey} that is not working or a limit might be reached \
                                       offloading to other processes")
-                        # TODO: implement offloading algos
+                        # offloading to other processes if the api key is not working
+                        self.offload_to_other_processes(index)                        
 
                     calls += 1
                     # serializing
@@ -120,8 +152,29 @@ class ProductionManager:
         except Exception as e :
             logging.exception(f"{os.getpid()} with {index=} exited")
 
+
+    def offload_to_other_processes(self, index):
+        """offloads the api key to other processes"""
+        # if the api key is not working we need to offload it to other processes
+        # we divide the cities between the processes
+        nb_processes = len(self._procinfo)
+        nb_cities = len(self._procinfo[index])
+        while nb_cities > 0:
+            for i in range(nb_processes):
+                if i == index: # we don't want to offload to the same process
+                    continue
+                if nb_cities == 0:
+                    break
+                city = self._procinfo[index].pop()
+                self._procinfo[i].append(city)
+                nb_cities -= 1
+
+        
+
     def __del__(self):
         if self._processes:
             for proc in self._processes:
                 proc.close()
                 logging.info(f"process {proc.pid} exited gracefully")
+
+production_manager = ProductionManager([])

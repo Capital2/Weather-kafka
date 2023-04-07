@@ -37,7 +37,11 @@ df.columns = ['ds', 'y']
 m = Prophet(interval_width=0.95)
 model = m.fit(df)
 
-#forcast the price
+#forcast the temperature
 future_temperature = m.make_future_dataframe(periods=3,freq='D')
 forecast = m.predict(future_temperature)
 print(forecast.tail())
+
+# Close connection
+session.shutdown()
+cluster.shutdown()

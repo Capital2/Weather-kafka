@@ -31,3 +31,4 @@ class CoordinatesEncoder:
             longitude *= -1
         return (latitude, longitude)
     
+coordinates_encoder = CoordinatesEncoder()
