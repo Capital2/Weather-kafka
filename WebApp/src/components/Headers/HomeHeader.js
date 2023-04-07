@@ -7,9 +7,7 @@ import { Container } from "reactstrap";
 import Skeleton from "react-loading-skeleton";
 import { SpinnerDotted } from "spinners-react";
 
-function HomeHeader({ defaultWeahter }) {
-  console.log("the default header");
-  console.log(defaultWeahter);
+function HomeHeader({ defaultWeahter }) { 
   return (
     <>
       <div

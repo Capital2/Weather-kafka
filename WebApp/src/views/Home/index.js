@@ -40,13 +40,20 @@ const Home = () => {
     email,
     defaultTopic,
     topics,
+    notifications,
+    newNotifications,
+    isAlert,
+    setNotifications,
+    setNewNotifications,
     setDefaultCity,
     setEmail,
     setDefaultTopic,
     setTopics,
+    setIsAlert,
   } = useAppState();
 
   // useEffect to track if the default city state is not null to extract the topic name associated to it from the backend
+  // Default city subscription section
   useEffect(() => {
     if (defaultCity !== null) {
       const [lat, lon] = defaultCity.value.split("$");
@@ -82,6 +89,7 @@ const Home = () => {
             //   ...messages[data.topic_name].weather,
             // });
 
+            // For test purpose
             setCurrentWeather({
               cityLabel: defaultCity.label,
               ...weatherFake,
@@ -98,12 +106,14 @@ const Home = () => {
               cityLabel: defaultCity.label,
               ...weatherFake,
             });
+            // end test purpose
           }
           // Subscribe to my default app city
           if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
             subscribe([data.topic_name]);
             setSubscriptionsTracker([...subscriptionsTracker, data.topic_name]);
           }
+          // Set searching state to my default city to see current, forecast and map widgets data related to the default user city
           setSearchingFor({
             topicName: data.topic_name,
             label: defaultCity.label,
@@ -114,7 +124,9 @@ const Home = () => {
   }, [defaultCity]);
 
   // useEffect to manage the subcriptions cleanup
+  // Cleanup section
   useEffect(() => {
+    subscribe([...subscriptions]);
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
       let topics_names = [];
@@ -126,7 +138,7 @@ const Home = () => {
         unsubscribe([...topics_names]);
       }
     };
-  }, [unsubscribe]);
+  }, [subscribe, unsubscribe]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
@@ -180,13 +192,13 @@ const Home = () => {
             });
             // End for test purpose
           } else {
-            // Let the user see a loading skeletons
+            // Let the user see a loading skeletons and wait until data is pushed from kafka to be consumed in the frontend
             setCurrentWeather(null);
             setForecast(null);
             setAlertWeather(null);
           }
         }
-        // If new data came for that topic displayed immediatly
+        // If new data came for that topic it will displayed immediatly
         setSearchingFor({ ...searchDataValue, topicName: data.topic_name });
       })
       .catch((error) => console.error(error));
@@ -194,7 +206,7 @@ const Home = () => {
 
   const handleSubscribe = () => {
     // To avoid duplicate subscription to the default city topic
-    // We are always subscribed to our default city
+    // We are always subscribed to our default city when the component mounts !!!
     if (searchingFor && searchingFor.topicName !== defaultTopic) {
       setSubscriptions([...subscriptions, searchingFor.topicName]);
     }
@@ -211,19 +223,37 @@ const Home = () => {
 
   // Listen for upcomping messages from the kafka consumer
   useEffect(() => {
-    if (searchingFor !== null && messages[searchingFor.topicName]) {
-      setCurrentWeather({
-        cityLabel: searchingFor.label,
-        ...weatherFake,
-      });
-      setForecast({ cityLabel: searchingFor.label, ...forecastFake });
-      setAlertWeather({ cityLabel: searchingFor.label, ...alertsFake });
-      // Check if the message that we receive belongs to the user's default city to update the home header component
-      if (searchingFor.topicName === defaultTopic) {
-        setDefaultWeather({
+    // Real time notifications (Check if there is alerts)
+    console.log("data coming in real time");
+    console.log(messages);
+    
+    if (Object.keys(messages).length > 0) {
+      // Notification section
+      // Going to be changed after the code integration to retreive data from messages["lastTopicUpdated"] ---> messages[messages["lastTopicUpdated"]].alerts
+      if (alertsFake.alerts.length > 0) {
+        if (!isAlert) {
+          setIsAlert(true);
+        }
+        alertsFake.alerts.forEach(alert => alert.seen = false);
+        setNotifications([...notifications, ...alertsFake.alerts]);
+        setNewNotifications(newNotifications + alertsFake.alerts.length);
+      }
+
+      // Update the current, forecast and map component section
+      if (searchingFor !== null && messages[searchingFor.topicName]) {
+        setCurrentWeather({
           cityLabel: searchingFor.label,
           ...weatherFake,
         });
+        setForecast({ cityLabel: searchingFor.label, ...forecastFake });
+        setAlertWeather({ cityLabel: searchingFor.label, ...alertsFake });
+        // Check if the message that we receive belongs to the user's default city to update the home header component
+        if (searchingFor.topicName === defaultTopic) {
+          setDefaultWeather({
+            cityLabel: searchingFor.label,
+            ...weatherFake,
+          });
+        }
       }
     }
   }, [messages]);

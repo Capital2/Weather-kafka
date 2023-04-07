@@ -3,13 +3,35 @@
 
 
 i.shake {
-    animation: shake 0.15s infinite;
+  animation: shake 0.15s infinite;
+}
+
+@keyframes shake {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  @keyframes shake {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(5deg); }
-    50% { transform: rotate(0deg); }
-    75% { transform: rotate(-5deg); }
-    100% { transform: rotate(0deg); }
+
+  25% {
+    transform: rotate(5deg);
   }
+
+  50% {
+    transform: rotate(0deg);
+  }
+
+  75% {
+    transform: rotate(-5deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.notifications-badge-number {
+  display: inline-block;  
+  border-radius: 50%;
+  background-color: #f5593d;
+}
+
+

@@ -4,13 +4,13 @@ import { io } from "socket.io-client";
 const useKafkaConsumer = (ipAddress, port) => {
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState({});
-  const [subscriptions, setSubscriptions] = useState([])
+  const [subscriptions, setSubscriptions] = useState([]);
 
   useEffect(() => {
     const newSocket = io(`http://${ipAddress}:${port}`);
-
     setSocket(newSocket);
 
+    // Messages section
     let localStorageMessages = localStorage.getItem("messages");
     if (localStorageMessages === null) {
       localStorage.setItem("messages", JSON.stringify(messages));
@@ -18,23 +18,29 @@ const useKafkaConsumer = (ipAddress, port) => {
       setMessages(JSON.parse(localStorageMessages));
     }
 
+    // Subscriptions section
     let localStorageSubscriptions = localStorage.getItem("subscriptions");
     if (localStorageSubscriptions === null) {
       localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
     } else {
-      // Loop through the subscriptions array and subscribe to each topic
-      let parsedSubscriptions = JSON.parse(localStorageSubscriptions)
-      console.log("ii")
-      console.log(parsedSubscriptions)
-      subscribe([...parsedSubscriptions])
-      setSubscriptions(parsedSubscriptions)
+      let parsedSubscriptions = JSON.parse(localStorageSubscriptions);      
+      setSubscriptions([...parsedSubscriptions]);
     }
 
     return () => {
-      newSocket.close()
-      syncToLocalStorage()
-    }
+      newSocket.close();
+    };
   }, []);
+
+  // Messages synchronizer
+  useEffect(() => {
+    localStorage.setItem("messages", JSON.stringify(messages));
+  }, [messages]);
+
+  // Subscriptions synchornizer
+  useEffect(() => {
+    localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
+  }, [subscriptions]);
 
   const subscribe = (topics) => {
     if (socket) {
@@ -47,11 +53,6 @@ const useKafkaConsumer = (ipAddress, port) => {
       socket.emit("message", { type: "unsubscribe", topics });
     }
   };
-
-  const syncToLocalStorage = () => {
-    localStorage.setItem("messages", JSON.stringify(messages));
-    localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
-  }
 
   useEffect(() => {
     if (socket) {

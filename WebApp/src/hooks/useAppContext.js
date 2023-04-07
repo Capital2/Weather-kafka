@@ -10,28 +10,49 @@ export const useAppContext = () => {
   const [email, setEmail] = useState(null); // user email
   const [defaultTopic, setDefaultTopic] = useState(null); // The default topic name
   const [topics, setTopics] = useState(null); // list of topics extracted from localstorage
-  const [notifications, setNotifications] = ([]) // The array that contains all notifications
-  const [isAlert, setIsAlert] = useState(false) // Flag to track when to notify the user that he have new notifications
 
-  // For test purpose
-  // useEffect(() => {
-  //   console.log("values we got in the global state")
-  //   console.log(defaultCity)
-  //   console.log(email)
-  // }, [])
+  const [notifications, setNotifications] = useState([]); // The array that contains all notifications
+  const [newNotifications, setNewNotifications] = useState(0); // THe number of new notifications
+  const [isAlert, setIsAlert] = useState(false); // Flag to track when to notify the user that he have new notifications
 
   const pushData = (newData) => {
     setData(newData);
   };
 
-  const addNotification = (notification) => {
-    // Add new notification at the head of the array
-    // ...
-  }
+  useEffect(() => {
+    // This function will be called after the component is mounted
+    let localStorageNotifications = localStorage.getItem("notifications");
+    if (localStorageNotifications === null) {
+      localStorage.setItem("notifications", JSON.stringify([]));
+    } else {
+      // Rebuild the global app state from the stored data in the local storage
+      let parsedLocalStorageNotifications = JSON.parse(
+        localStorageNotifications
+      );
+      setNotifications([...parsedLocalStorageNotifications]);
+      setNewNotifications(parsedLocalStorageNotifications.length);
+    }
+  }, []);
 
-  const deleteNotification = () => {
-    // Delete a notification from the array of notifications based on the index
-  }
+  useEffect(() => {
+    if (defaultTopic !== null) {
+      // Write the unseen notifications to the localstorage
+      console.log("here hehi");
+
+      let unseenNotifications = notifications.filter(
+        (notification) => !notification.seen
+      );
+
+      localStorage.setItem(
+        "notifications",
+        JSON.stringify(unseenNotifications)
+      );
+
+      return(() => {
+        localStorage.setItem("messages", JSON.stringify([]))
+      })
+    }
+  }, [notifications]);
 
   return {
     data,
@@ -39,11 +60,17 @@ export const useAppContext = () => {
     email,
     defaultTopic,
     topics,
+    isAlert,
+    notifications,
+    newNotifications,
     pushData,
     setDefaultCity,
     setEmail,
     setDefaultTopic,
     setTopics,
+    setIsAlert,
+    setNotifications,
+    setNewNotifications,
   };
 };
 
@@ -56,25 +83,41 @@ export const AppProvider = ({ children }) => {
 };
 
 export const useAppState = () => {
-  const {  data,
+  const {
+    data,
     defaultCity,
     email,
     defaultTopic,
     topics,
+    isAlert,
+    notifications,
+    newNotifications,
     pushData,
     setDefaultCity,
     setEmail,
     setDefaultTopic,
-    setTopics, } = useContext(AppContext);
+    setTopics,
+    setIsAlert,
+    setNotifications,
+    setNewNotifications,
+  } = useContext(AppContext);
 
-  return {  data,
+  return {
+    data,
     defaultCity,
     email,
     defaultTopic,
     topics,
+    isAlert,
+    notifications,
+    newNotifications,
     pushData,
     setDefaultCity,
     setEmail,
     setDefaultTopic,
-    setTopics, };
+    setTopics,
+    setIsAlert,
+    setNotifications,
+    setNewNotifications,
+  };
 };
