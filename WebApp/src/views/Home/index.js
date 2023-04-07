@@ -27,6 +27,9 @@ const Home = () => {
   const [searchingFor, setSearchingFor] = useState(null);
   const [subscriptionsTracker, setSubscriptionsTracker] = useState([]);
 
+  // Flag to detect if we are fething from cache
+  const [fromCache, setFromCache] = useState(false)
+
   // Methods to subscribe, unsubscribe to topics and the list of messages we got
   const { subscribe, unsubscribe, messages, subscriptions, setSubscriptions } =
     useKafkaConsumer(
@@ -59,7 +62,7 @@ const Home = () => {
   useEffect(() => {
     if (defaultCity !== null) {
       const [lat, lon] = defaultCity.value.split("$");
-
+  
       fetch(
         `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
         {
@@ -68,47 +71,30 @@ const Home = () => {
         }
       )
         .then((response) => response.json())
-        .then((data) => {
+        .then((data) => { 
           // Set the default topic name in the global app state
           setDefaultTopic(data.topic_name);
           // Check if the data already exists in the local storage
           if (messages[data.topic_name]) {
-            // To uncomment
-            // setCurrentWeather({
-            //   cityLabel: defaultCity.label,
-            //   ...messages[data.topic_name].weather,
-            // });
-            // setForecast({
-            //   cityLabel: defaultCity.label,
-            //   ...messages[data.topic_name].forecast,
-            // });
-            // setAlertWeather({
-            //   cityLabel: defaultCity.label,
-            //   ...messages[data.topic_name].alerts,
-            // });
-            // setDefaultWeather({
-            //   cityLabel: defaultCity.label,
-            //   ...messages[data.topic_name].weather,
-            // });
-
-            // For test purpose
+            // Update the cache flag
+            setFromCache(true)
+            // Set data of the default city
             setCurrentWeather({
               cityLabel: defaultCity.label,
-              ...weatherFake,
+              ...messages[data.topic_name].weather,
             });
             setForecast({
               cityLabel: defaultCity.label,
-              ...forecastFake,
+              ...messages[data.topic_name].forecast,
             });
             setAlertWeather({
               cityLabel: defaultCity.label,
-              ...alertsFake,
+              ...messages[data.topic_name].alerts,
             });
             setDefaultWeather({
               cityLabel: defaultCity.label,
-              ...weatherFake,
+              ...messages[data.topic_name].weather,
             });
-            // end test purpose
           }
           // Subscribe to my default app city
           if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
@@ -131,21 +117,26 @@ const Home = () => {
     subscribe([...subscriptions]);
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
-      // let topics_names = [];
-      // for (const property in messages) {
-      //   topics_names.push(messages[property].topic_name);
-      // }
+      let topics_names = [];
+      let tmpMessages = {...messages}
+      // delete myObj.foo;
+      for (const property in messages) {       
+        topics_names.push(messages[property].topic_name);
+      }
 
-      // if (topics_names.length > 0) {
-      //   unsubscribe([...topics_names]);
-      // }
-      unsubscribe([defaultTopic])
+      if (topics_names.length > 0) {
+        unsubscribe([...topics_names]);
+      }
     };
   }, [subscribe, unsubscribe]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
     const [lat, lon] = searchDataValue.value.split("$");
+    console.log("the search bar feature")
+    console.log("lat = ", lat)
+    console.log("lon = ", lon)
+
     fetch(
       `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
       {
@@ -162,38 +153,19 @@ const Home = () => {
           // The user is already subscribed to the topic data.topic_name
           // Check if we have already pulled data realted to that topic (old data stored in the messages array)
           if (messages[data.topic_name]) {
-            // // Set the data that we already have
-            // setCurrentWeather({
-            //   cityLabel: searchDataValue.label,
-            //   ...messages[data.topic_name].weather,
-            // });
-            // setForecast({
-            //   cityLabel: searchDataValue.label,
-            //   ...messages[data.topic_name].forecast,
-            // });
-            // setAlertWeather({
-            //   cityLabel: searchDataValue.label,
-            //   ...messages[data.topic_name].alerts,
-            // });
-
-            // For test purpose
+            // Set the data that we already have retreving data from cache
             setCurrentWeather({
-              cityLabel: defaultCity.label,
-              ...weatherFake,
+              cityLabel: searchDataValue.label,
+              ...messages[data.topic_name].weather,
             });
             setForecast({
-              cityLabel: defaultCity.label,
-              ...forecastFake,
+              cityLabel: searchDataValue.label,
+              ...messages[data.topic_name].forecast,
             });
             setAlertWeather({
-              cityLabel: defaultCity.label,
-              ...alertsFake,
+              cityLabel: searchDataValue.label,
+              ...messages[data.topic_name].alerts,
             });
-            setDefaultWeather({
-              cityLabel: defaultCity.label,
-              ...weatherFake,
-            });
-            // End for test purpose
           } else {
             // Let the user see a loading skeletons and wait until data is pushed from kafka to be consumed in the frontend
             setCurrentWeather(null);
@@ -230,7 +202,7 @@ const Home = () => {
     console.log("data coming in real time");
     console.log(messages);
     
-    if (Object.keys(messages).length > 0 && !cacheDataRetrieval) {
+    if (Object.keys(messages).length > 0 && !fromCache) {
       // Notification section
       // Going to be changed after the code integration to retreive data from messages["lastTopicUpdated"] ---> messages[messages["lastTopicUpdated"]].alerts
       if (alertsFake.alerts.length > 0) {
@@ -259,10 +231,7 @@ const Home = () => {
         }
       }
     }
-
-    if (Object.keys(messages).length > 0 && cacheDataRetrieval) {
-      setCacheDataRetrieval(false)
-    }    
+    
   }, [messages]);
 
   return (

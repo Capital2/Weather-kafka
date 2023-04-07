@@ -7,10 +7,13 @@ const io = require("socket.io")(server, {
   },
 });
 
+let host = process.env.KAFKA_BROKER_IP 
+let port = process.env.KAFKA_BROKER_PORT 
+
 let id = 0
 const kafka = new Kafka({
   clientId: "my-app",
-  brokers: [`${process.env.KAFKA_BROKER_IP}:${process.env.KAFKA_BROKER_PORT}`],
+  brokers: [`${host}:${port}`],  
 });
 
 // Map socket connections to Kafka consumers
@@ -29,11 +32,14 @@ io.on("connection", (socket) => {
   console.log(consumers);
 
   // Handle incoming messages from the client
-  socket.on("message", async (message) => {
-    console.log(`Received message from client:`);
-    console.log(message);
+  socket.on("message", async (message) => {    
     const { type, topics } = message;
 
+    console.log(`Received message from client:`);
+    console.log(message);
+    console.log("the type of the message ", type)
+    console.log("the list of topics ", topics)
+    
     if (type === "subscribe") {
       console.log("detected subscribe event");
       // Create a Kafka consumer for each topic specified by the client
@@ -77,6 +83,9 @@ io.on("connection", (socket) => {
             isStale,
             pause,
           }) => {
+            console.log("consumed message")
+            console.log(batch.messages)
+            console.log("---")
             let lastMsg =
               batch.messages[batch.messages.length - 1].value.toString();
             socket.emit("message", { topic, data: lastMsg });
@@ -127,6 +136,6 @@ io.on("connection", (socket) => {
 
 server.listen(8080, () => {
   console.log(
-    `Server listening on ${process.env.KAFKA_BROKER_IP}:${process.env.KAFKA_BROKER_PORT}`
+    `Server listening on localhost:8080`
   );
 });
