@@ -1,12 +1,14 @@
 import urllib.parse
 import requests
-from api_exceptions import ApiServerException, LimitReachedException, ApiKeyNotWorkingException, MalformattedRequestException, ApiErrorException
+from .api_exceptions import ApiServerException, LimitReachedException, ApiKeyNotWorkingException, MalformattedRequestException, ApiErrorException
 
 import asyncio
+import json
 
-from .CoordinatesEncoder import CoordinatesEncoder
-from modules.notifications.controllers.alert_notifications import alert_notifications
-from modules.notifications.controllers.subscriber_repository import subscriber_repository
+from .CoordinatesEncoder import coordinates_encoder
+
+from .notifications.controllers.alert_notifications import alert_notifications
+from .notifications.controllers.subscriber_repository import subscriber_repository
 
 class OpenWeatherApi:
     API_CALL_TYPES = {
@@ -18,7 +20,7 @@ class OpenWeatherApi:
     def __init__(self, params: dict) -> None:
         self.url = f"https://api.openweathermap.org/data/2.5"
         self.params = params
-        self.encrypted_city_coords = CoordinatesEncoder().encode(params['lat'], params['lon'])
+        self.encrypted_city_coords = coordinates_encoder.encode(params['lat'], params['lon'])
 
 
     def get_all(self) -> dict:
@@ -35,16 +37,18 @@ class OpenWeatherApi:
         for call_type, value in self.API_CALL_TYPES.items():
             url = f"{self.url}/{call_type}?"
             response = self.get(url)
-            data[value] = response.content.decode('utf-8')
+            response = json.loads(response.content.decode('utf-8'))
+            data[value] = response
             if value == "alerts":
-                if 'alerts' in data[value]:
-                    data[value] = data[value]['alerts']
+                if 'alerts' in response:
+                    data[value] = response['alerts']
                     alert = data[value][0] # only one alert is supported
-                    asyncio.run(alert_notifications.send_email_to_subscribers(alert, self.encrypted_city_coords))
+                    alert_notifications.send_email_to_subscribers(alert, self.encrypted_city_coords)
                     subscriber_repository.set_subscribers_sent(self.encrypted_city_coords) # to avoid sending the same alert twice
                 else:
                     data[value] = "NO_DATA_FOUND"
                     subscriber_repository.set_subscribers_not_sent(self.encrypted_city_coords)
+        
         return data
 
 
