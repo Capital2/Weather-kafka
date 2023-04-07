@@ -4,23 +4,26 @@ import React from "react";
 // reactstrap components
 import { Container } from "reactstrap";
 
-// core components
+import Skeleton from "react-loading-skeleton";
+import { SpinnerDotted } from "spinners-react";
 
-function HomeHeader() {
+function HomeHeader({ defaultWeahter }) { 
   return (
     <>
       <div
         className="page-header section-dark"
         style={{
           backgroundImage:
-            "url(" + require("assets/img/antoine-barres.jpg") + ")"
+            "url(" + require("assets/img/antoine-barres.jpg") + ")",
         }}
       >
         <div className="filter" />
         <div className="content-center">
           <Container>
             <div className="title-brand">
-              <h1 className="presentation-title">Rades, Tunisia</h1>
+              <h1 className="presentation-title">
+                {defaultWeahter ? defaultWeahter.cityLabel : <SpinnerDotted style={{ color: "#fff", width: "250px", height: "250px" }} />}
+              </h1>
               <div className="fog-low">
                 <img alt="..." src={require("assets/img/fog-low.png")} />
               </div>
@@ -29,14 +32,27 @@ function HomeHeader() {
               </div>
             </div>
             <h2 className="presentation-subtitle text-center">
-              At your current location its is 13C feels like 11C
+              {defaultWeahter && (
+                <>
+                  <span>
+                    Tempreture at your current location is{" "}
+                    {defaultWeahter.main.temp}°C, Feels like{" "}
+                    {defaultWeahter.main.feels_like}°C
+                  </span>
+                  <br />
+                  <span>
+                    Varies between {defaultWeahter.main.temp_min}°C and{" "}
+                    {defaultWeahter.main.temp_max}°C
+                  </span>
+                </>
+              )}
             </h2>
           </Container>
-        </div>        
+        </div>
         <div
           className="moving-clouds"
           style={{
-            backgroundImage: "url(" + require("assets/img/clouds.png") + ")"
+            backgroundImage: "url(" + require("assets/img/clouds.png") + ")",
           }}
         />
         <h6 className="category category-absolute">

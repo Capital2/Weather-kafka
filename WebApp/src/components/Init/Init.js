@@ -5,11 +5,18 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
+
 // reactstrap components
 import { Button, FormGroup, Input, Modal } from "reactstrap";
 
+// Search component
+import Search from "components/Search/Search";
+
 // Alert component to display notes to the user
 import ContentAlert from "components/Alerts/ContentAlert";
+
+// Interact with the global app state
+import { useAppState } from "hooks/useAppContext";
 
 const Init = forwardRef((props, ref) => {
   // The init modal state
@@ -24,10 +31,21 @@ const Init = forwardRef((props, ref) => {
     },
   }));
 
+  // Access to the global state and functions to manipulate it
+  const { data, pushData, setDefaultCity, setEmail } = useAppState();
+
+  // The callback function that the Search component need
+  const onSearchChange = (searchDataValue) => {
+    setConfig({ ...config, defaultCity: searchDataValue });
+  };
+
   const initialize = () => {
     // Write data to localstorage
+    localStorage.setItem("defaultCity", JSON.stringify(config.defaultCity));
+    localStorage.setItem("email", config.email);
 
-    // ...
+    setDefaultCity(config.defaultCity);
+    setEmail(config.email);
     setInitModal(false);
   };
 
@@ -39,31 +57,31 @@ const Init = forwardRef((props, ref) => {
   useEffect(() => {
     // Check if the user set a default city and an email address
     let defaultCity = localStorage.getItem("defaultCity");
-    console.log("default city detected");
-    console.log(defaultCity);
+    let email = localStorage.getItem("email");
     if (defaultCity === null) {
       // Launch the modal to force the user to setup the dafault city and his email address
       setInitModal(true);
+    } else {
+      setConfig({
+        defaultCity: JSON.parse(defaultCity),
+        email,
+      });
+      setDefaultCity(JSON.parse(defaultCity));
+      setEmail(email);
     }
   }, []);
   return (
     <>
-      {/* <Button
-        className="btn-round"
-        color="primary"
-        type="button"
-        onClick={() => setLoginModal(true)}
-      >
-        Login modal
-      </Button> */}
       <Modal
         isOpen={initModal}
         toggle={() => setInitModal(false)}
         modalClassName="modal-register"
         backdrop="static"
         size="lg"
+        keyboard={false}
       >
         <div className="modal-header no-border-header text-center">
+          {/* Modal close button */}
           <button
             aria-label="Close"
             className="close"
@@ -78,7 +96,10 @@ const Init = forwardRef((props, ref) => {
         <div className="modal-body">
           <FormGroup>
             <label>Default City</label>
-            <Input defaultValue="" placeholder="Email" type="text" />
+            <Search
+              onSearchChange={onSearchChange}
+              defaultCity={config.defaultCity}
+            />
           </FormGroup>
           <FormGroup>
             <label>Email</label>
@@ -101,8 +122,8 @@ const Init = forwardRef((props, ref) => {
         </div>
         <div className="p-4">
           <ContentAlert
-            color="warning"
-            styles={{"color": "#fff"}}
+            color="danger"
+            styles={{ color: "#fff" }}
             heading="Notes"
             messages={[
               "The email will be used by the application so that you will receive emails in case of extreme weather",

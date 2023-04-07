@@ -21,7 +21,8 @@ class TopicsContoller():
             print("Exception class:", type(e).__name__)
 
             return {"error": True}        
-        
+
+
     def get_all_topics(self):
         return {"topics": topics_manager.list_topics()}
     

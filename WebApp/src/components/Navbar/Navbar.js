@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 // nodejs library that concatenates strings
 import classnames from "classnames";
 // reactstrap components
@@ -11,12 +11,25 @@ import {
   NavLink,
   Nav,
   Container,
+  Badge,
 } from "reactstrap";
 import { Sidebar } from "../Sidebar/Sidebar";
+
+import { useAppState } from "hooks/useAppContext";
 
 function AppNavbar({ toggleInitModal }) {
   const [navbarColor, setNavbarColor] = React.useState("navbar-transparent");
   const [navbarCollapse, setNavbarCollapse] = React.useState(false);
+
+  // Get the global app notifictions fields from the central data store
+  const {
+    isAlert,
+    setIsAlert,
+    notifications,
+    setNotifications,
+    newNotifications,
+    setNewNotifications,
+  } = useAppState();
 
   const sidebarRef = useRef();
   const toggleSidebar = () => {
@@ -49,6 +62,7 @@ function AppNavbar({ toggleInitModal }) {
       window.removeEventListener("scroll", updateNavbarColor);
     };
   });
+
   return (
     <>
       <Sidebar ref={sidebarRef} />
@@ -86,10 +100,25 @@ function AppNavbar({ toggleInitModal }) {
                   data-placement="bottom"
                   href="#"
                   title="Notifications"
-                  onClick={toggleSidebar}
+                  onClick={() => {
+                    toggleSidebar();
+                    // The user has seen the notifications ==> reset notifications to 0
+                    setIsAlert(false);
+                    // Reset new notifications
+                    setNewNotifications(0);
+                  }}
                 >
-                  <i className="fa fa-bell" />
-                  <p className="d-lg-none">Notifications</p>
+                  <i className={`fa fa-bell ${isAlert === true && "shake"}`}>
+                    {newNotifications > 0 && (
+                      <Badge
+                        className="notifications-badge-number"
+                        color="danger"
+                      >
+                        {newNotifications > 9 ? "+9" : newNotifications}
+                      </Badge>
+                    )}
+                  </i>
+                  <p className="d-lg-none ">Notifications</p>
                 </NavLink>
               </NavItem>
               <NavItem>
