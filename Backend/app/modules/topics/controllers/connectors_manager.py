@@ -2,7 +2,7 @@ import requests
 from cassandra.cluster import Cluster
 
 from .topics_manager import topics_manager
-
+# Test vps integration
 class ConnectorsManager:
     WORKER_IP = "datastax-connect"
     PORT = 8083

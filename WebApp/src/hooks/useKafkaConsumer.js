@@ -60,7 +60,8 @@ const useKafkaConsumer = (ipAddress, port) => {
       socket.on("message", (message) => {
         setMessages((prevMessages) => ({
           ...prevMessages,
-          [message.topic]: message.data,
+          [message.topic]: JSON.parse(message.data),
+          "lastTopicUpdated": message.topic
         }));
       });
     }

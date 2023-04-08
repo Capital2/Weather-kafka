@@ -39,6 +39,8 @@ const WeatherMap = ({ data }) => {
   // if (currentData == null || forecastData == null || alertData == null) {
   //   return null;
   // }
+  console.log("data written to the map component")
+  console.log(data)
   return (
     <MapContainer center={center} zoom={zoom}>
       <ChangeView center={center} zoom={zoom} />
