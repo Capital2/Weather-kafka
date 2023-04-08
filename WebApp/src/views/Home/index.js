@@ -118,7 +118,7 @@ const Home = () => {
     return () => {
       // Unsubscribe from Kafka topics when component unmounts
       let topics_names = [];
-      let tmpMessages = { ...messages }      
+      let tmpMessages = { ...messages }
       delete tmpMessages.lastTopicUpdated
       for (const property in tmpMessages) {
         topics_names.push(tmpMessages[property].topic_name);
@@ -131,7 +131,7 @@ const Home = () => {
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
-    const [lat, lon] = searchDataValue.value.split("$");    
+    const [lat, lon] = searchDataValue.value.split("$");
 
     fetch(
       `http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/manage_subscription/?lat=${lat}&lon=${lon}`,
@@ -145,7 +145,7 @@ const Home = () => {
         if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
           subscribe([data.topic_name]);
           setSubscriptionsTracker([...subscriptionsTracker, data.topic_name]);
-        } else {         
+        } else {
           // The user is already subscribed to the topic data.topic_name
           // Check if we have already pulled data realted to that topic (old data stored in the messages array)
           if (messages[data.topic_name]) {
@@ -217,11 +217,7 @@ const Home = () => {
       }
 
       // Update the current, forecast and map component section
-     
       if (searchingFor !== null && messages[searchingFor.topicName]) {
-        console.log("functions to trigger changes")
-        console.log(messages[searchingFor.topicName])
-        console.log("----")
         setCurrentWeather({
           cityLabel: searchingFor.label,
           ...messages[searchingFor.topicName].weather,
@@ -236,8 +232,11 @@ const Home = () => {
           });
         }
       }
+
+
     }
-  }, [messages]);
+  }, [messages, searchingFor]);
+
 
   return (
     <>
