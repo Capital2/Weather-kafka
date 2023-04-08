@@ -289,10 +289,7 @@ const Home = () => {
               <Search onSearchChange={onSearchChange} />
               <br />
               <p className="description text-left">
-                Paper Kit comes with 100 custom icons made by our friends from
-                NucleoApp. The official package contains over 2.100 thin icons
-                which are looking great in combination with Paper Kit Make sure
-                you check all of them and use those that you like the most.
+                Our intuitive search field allows you to effortlessly browse information about cities around the world. Whether you're looking for travel guides, local attractions, or up-to-date weather forecasts, simply type in the name of the city you're interested in and let our powerful search engine do the work. Get ready to explore the world, one city at a time.
               </p>
               <br />
               <Button
@@ -334,11 +331,8 @@ const Home = () => {
           <Row>
             <Col className="ml-auto mr-auto text-center" md="8">
               <h2 className="title">5 Day weather forecast</h2>
-              <p className="description">
-                The kit comes with three pre-built pages to help you get started
-                faster. You can change the text and images and you're good to
-                go. More importantly, looking at them will give you a picture of
-                what you can built with this powerful kit.
+              <p className="description text-center">
+                Get ahead of the weather with our comprehensive 5-day forecast. Plan your activities, prepare for any changes in temperature, and stay up-to-date on the latest conditions in your area. With accurate and reliable forecasts, you can make the most of your day, rain or shine.
               </p>
             </Col>
             <Col className="ml-auto mr-auto text-center" md="12">
@@ -358,11 +352,8 @@ const Home = () => {
           <Row>
             <Col className="ml-auto mr-auto text-center" md="8">
               <h2 className="title">Map Visulaization</h2>
-              <p className="description">
-                The kit comes with three pre-built pages to help you get started
-                faster. You can change the text and images and you're good to
-                go. More importantly, looking at them will give you a picture of
-                what you can built with this powerful kit.
+              <p className="description text-center">
+                Explore the world like never before with our interactive map visualization. Zoom in, zoom out, and discover new places with ease. With real-time updates and detailed information, you can navigate with confidence and explore the world in a whole new way. Whether you're planning your next vacation or just curious about the world around you, our map visualization is the perfect tool for any adventure.
               </p>
             </Col>
             <Col className="ml-auto mr-auto text-center" md="12">
