@@ -29,21 +29,23 @@ class SubscriberRepository:
         return self.session.query(Subscriber).filter_by(city=city).all()
     
 
-    def add_subscriber(self, email: str, city: str) -> None:
+    def add_subscriber(self, email: str, city: str) -> List[Subscriber]:
         subscriber = self.session.query(Subscriber).filter_by(email=email, city=city).first()
         if subscriber: # if subscriber already exists
             return
         subscriber = Subscriber(email=email, city=city)
         self.session.add(subscriber)
         self.session.commit()
+        return self.get_subscribers_by_city(city)
 
 
-    def remove_subscriber(self, email: str, city: str) -> None:
+    def remove_subscriber(self, email: str, city: str) -> List[Subscriber]:
         subscriber = self.session.query(Subscriber).filter_by(email=email, city=city)
         if not subscriber: # if subscriber doesn't exist
             return
         subscriber.delete()
         self.session.commit()
+        return self.get_subscribers_by_city(city)
 
 
     def set_subscriber_sent(self, email: str, city: str) -> None:

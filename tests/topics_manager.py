@@ -64,6 +64,7 @@ class TopicsManager:
         if new_topic in self.list_topics():
             # raise ExistantTopicName("Topic name already used !")
             print("topic alreatdy exists")
+            return self.list_topics()
 
         # Create a new topic object with the given parameters
         topic = NewTopic(name=new_topic, num_partitions=self.num_partitions,

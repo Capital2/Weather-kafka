@@ -22,7 +22,7 @@ class ProductionManager:
 
     """
     
-    def __init__(self, citylist: list, config_path = "./modules/producers/config.cfg", bootstrap_server='20.16.155.55:9092', timeout=60*10) -> None:
+    def __init__(self, citylist: list, config_path = "./modules/producers/config.cfg", bootstrap_server='20.16.155.55:9092', timeout=30) -> None:
         """Args:
             citylist: Initial list of ints representing cityids to produce to
             config_path: path to configuration file

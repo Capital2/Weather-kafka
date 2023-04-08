@@ -43,8 +43,7 @@ class OpenWeatherApi:
                 if 'alerts' in response:
                     data[value] = response['alerts']
                     alert = data[value][0] # only one alert is supported
-                    alert_notifications.send_email_to_subscribers(alert, self.encrypted_city_coords)
-                    subscriber_repository.set_subscribers_sent(self.encrypted_city_coords) # to avoid sending the same alert twice
+                    asyncio.create_task(alert_notifications.send_email_to_subscribers(alert, self.encrypted_city_coords))
                 else:
                     data[value] = "NO_DATA_FOUND"
                     subscriber_repository.set_subscribers_not_sent(self.encrypted_city_coords)

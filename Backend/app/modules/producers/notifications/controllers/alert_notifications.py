@@ -3,15 +3,16 @@ from jinja2 import Template
 
 from .subscriber_repository import subscriber_repository
 
-import asyncio
-NOTIFICATION_EMAIL_TEMPLATE = 'notifications/templates/notification_email.html'
+from time import sleep
+
+NOTIFICATION_EMAIL_TEMPLATE = 'modules/producers/notifications/templates/notification_email.html'
 
 class AlertNotifications:
     def __init__(self) -> None:
         self.connection_conf = ConnectionConfig(
-            MAIL_USERNAME ="weather.app.alerts@outlook.com",
+            MAIL_USERNAME ="weather.app.alerts1@outlook.com",
             MAIL_PASSWORD = "147852369Alerts", # Noice
-            MAIL_FROM = "weather.app.alerts@outlook.com",
+            MAIL_FROM = "weather.app.alerts1@outlook.com",
             MAIL_FROM_NAME = "Weather Alerts",
             MAIL_SERVER="smtp.office365.com",
             MAIL_PORT = 587,
@@ -34,16 +35,27 @@ class AlertNotifications:
         if not subscribers:
             return
         subject = f"Extreme Weather Alert from { weather_alert['sender_name'] }"
-        
-        message_schema = MessageSchema(
-            subject=subject,
-            recipients=subscribers,
-            body=body,
-            subtype="html"
-        )
+        for subscriber in subscribers:
+            message_schema = MessageSchema(
+                subject=subject,
+                recipients=[subscriber],
+                body=body,
+                subtype="html"
+            )
+            tries = 10
+            while tries > 0:
+                try:
+                    fm = FastMail(self.connection_conf)
+                    await fm.send_message(message=message_schema, template_name=body)
+                except Exception as e:
+                    print("Exception occurred:", e)
+                    print("Exception class:", type(e).__name__)
+                    tries -= 1
+                    sleep(0.2)
+                    continue
+                break
 
-        fm = FastMail(self.connection_conf)
-        await fm.send_message(message=message_schema, template_name=body)
+        subscriber_repository.set_subscribers_sent(crypted_city_coords)
         
 
     def _render_template(self, **kwargs) -> str:
