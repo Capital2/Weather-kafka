@@ -30,7 +30,7 @@ class TopicsContoller():
         production_manager.add_city(city_lat_long)
 
         return {"topic_name": city_lat_long }
-        
+
     def get_all_topics(self):
         return {"topics": topics_manager.list_topics()}
     

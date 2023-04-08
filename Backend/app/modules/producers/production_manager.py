@@ -7,6 +7,7 @@ from .OpenWeatherApi import OpenWeatherApi
 from time import sleep
 from kafka import KafkaProducer, errors
 from .api_exceptions import ApiKeyNotWorkingException, LimitReachedException
+from modules.settings.settings import settings
 
 from .CoordinatesEncoder import CoordinatesEncoder
 

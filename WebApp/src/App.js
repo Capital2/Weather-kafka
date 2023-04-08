@@ -5,6 +5,9 @@ import { BrowserRouter, Route, Redirect, Switch } from "react-router-dom";
 import "bootstrap/scss/bootstrap.scss";
 import "assets/scss/paper-kit.scss?v=1.3.0";
 import "assets/demo/demo.css?v=1.3.0";
+import 'react-loading-skeleton/dist/skeleton.css'
+/* to load animations for all spinners at once */
+import "styles/App.css";
 
 // pages
 import Home from "views/Home";
@@ -15,6 +18,9 @@ import Navbar from "components/Navbar/Navbar";
 import Footer from "components/Footer/Footer";
 import Init from "components/Init/Init";
 
+// App context
+import { AppProvider } from "hooks/useAppContext";
+
 export default function App() {
   // Refrence on  the init modal
   const initModalRef = useRef();
@@ -24,21 +30,23 @@ export default function App() {
   };
   return (
     <>
-      <Init ref={initModalRef} />
-      <Navbar toggleInitModal={toggleInitModal} />
-      <div className="content">
-        <BrowserRouter>
-          <Switch>
-            <Route path="/home" render={(props) => <Home {...props} />} />
-            <Route
-              path="/dashboard"
-              render={(props) => <Dashboard {...props} />}
-            />
-            <Redirect to="/home" />
-          </Switch>
-        </BrowserRouter>
-      </div>
-      <Footer />
+      <AppProvider>
+        <Init ref={initModalRef} />
+        <Navbar toggleInitModal={toggleInitModal} />
+        <div className="content">
+          <BrowserRouter>
+            <Switch>
+              <Route path="/home" render={(props) => <Home {...props} />} />
+              <Route
+                path="/dashboard"
+                render={(props) => <Dashboard {...props} />}
+              />
+              <Redirect to="/home" />
+            </Switch>
+          </BrowserRouter>
+        </div>
+        <Footer />
+      </AppProvider>
     </>
   );
 }
