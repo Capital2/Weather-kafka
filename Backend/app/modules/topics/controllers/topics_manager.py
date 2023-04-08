@@ -63,10 +63,13 @@ class TopicsManager:
         Raises:
             Exception: If the new topic name already exists in the Kafka cluster or if there is an error executing the command.
         """
-
-        if new_topic in self.list_topics():
+        topics = self.list_topics()
+        print("==========", topics)
+        print("==========", (new_topic in topics))
+        if new_topic in topics:
             # raise ExistantTopicName("Topic name already used !")
-            print("topic alreatdy exists")
+            print("topic already exists")
+            return topics
 
         # Create a new topic object with the given parameters
         topic = NewTopic(name=new_topic, num_partitions=self.num_partitions,

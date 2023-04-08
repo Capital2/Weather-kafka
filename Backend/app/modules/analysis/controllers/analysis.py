@@ -21,7 +21,7 @@ class CleanData(Base):
 class Analysis:
     def __init__(self):
         #init the database url
-        self.url = 'mysql+mysqlconnector://root:root@localhost/weather'
+        self.url = 'mysql+mysqlconnector://root:root@sql-db:3306/weather'
         
         self.engine = create_engine(self.url, echo=True)
         self.connection = self.engine.connect()
@@ -32,7 +32,7 @@ class Analysis:
         self.metadata.reflect(bind=self.connection)
 
         #open cassandra session
-        self.cluster = Cluster(['localhost'])
+        self.cluster = Cluster(['cassandra'])
         self.session = self.cluster.connect('weather')
         
        
@@ -51,21 +51,22 @@ class Analysis:
         
         return rows
     
-    def clean_data(self, record:json)->dict:
+    def clean_data(self, record: dict or str) -> dict:
         """
         return json contains temp, humidity, wind_speed, and datetime
         """
         #parse json data 
-        json_data = json.loads(record)
-        weather = json_data["weather"]
-        value = json.loads(weather)
-
+        if(type(record) is str):
+            data = json.loads(record)
+            weather = data["weather"]
+        else:
+            weather = record["weather"]
         return {
-             "date_time": str(datetime.fromtimestamp(value["dt"])),
-             "temperature": value["main"]["temp"],
-             "wind_speed": value["wind"]["speed"],
-             "humidity": value["main"]["humidity"],
-             "city_name": value["name"]
+             "date_time": str(datetime.fromtimestamp(weather["dt"])),
+             "temperature": weather["main"]["temp"],
+             "wind_speed": weather["wind"]["speed"],
+             "humidity": weather["main"]["humidity"],
+             "city_name": weather["name"]
         }
     
     def create_table(self):
@@ -102,13 +103,13 @@ class Analysis:
         )
         self.sqlSession.commit()
 
+
     def cassandra_to_sql(self, table_name: str) -> None:
         rows = self.get_data_from_cassandra(table_name)
         for row in rows:
             raw_data = self.clean_data(row.data)
             self.insert_into_table(raw_data, table_name)
+        self.sqlSession.close()
+        self.connection.close()
 
 
-
-analysis = Analysis()
-analysis.cassandra_to_sql("P42D793TP0D4258")

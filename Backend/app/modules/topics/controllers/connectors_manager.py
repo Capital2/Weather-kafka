@@ -70,6 +70,11 @@ class ConnectorsManager:
 
         if topic_name not in topics_manager.list_topics():
             raise Exception(f'Topic {topic_name} does not exist !')
+
+        connectors = self.list_connectors()
+        if connector_name in connectors:
+            return connectors
+        
         encrypted_city_coordinates = topic_name.lower()
         self.create_cassandra_table(encrypted_city_coordinates)
 

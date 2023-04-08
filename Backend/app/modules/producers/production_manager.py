@@ -23,7 +23,7 @@ class ProductionManager:
 
     """
     
-    def __init__(self, citylist: list, config_path = "./modules/producers/config.cfg", bootstrap_server=f'{settings.kafka_broker_ip}:{settings.kafka_broker_ip}', timeout=60*10) -> None:
+    def __init__(self, citylist: list, config_path = "./modules/producers/config.cfg", bootstrap_server='broker:29092', timeout=30) -> None:
         """Args:
             citylist: Initial list of ints representing cityids to produce to
             config_path: path to configuration file
@@ -89,7 +89,7 @@ class ProductionManager:
             break # if we get here then the api key is working and we can break the loop
 
     
-    def produce_first_time(self, cityid: str, api_key: str , bootstrap_server=f'{settings.kafka_broker_ip}:{settings.kafka_broker_ip}'):
+    def produce_first_time(self, cityid: str, api_key: str , bootstrap_server='broker:29092'):
         """produces for the first time to a cityid topic so that we can have some data to work with"""
         
         producer = KafkaProducer(bootstrap_servers=bootstrap_server)
@@ -117,7 +117,7 @@ class ProductionManager:
             self.add_city(item)
 
     
-    def _produce(self, apikey: str, cityidlist: list, index, calls = 0, bootstrap_server=f'{settings.kafka_broker_ip}:{settings.kafka_broker_ip}'):
+    def _produce(self, apikey: str, cityidlist: list, index, calls = 0, bootstrap_server='broker:29092'):
         """production loop used for multiprocessing"""
         logging.info(f"process {os.getpid()} with {index=} started producing")
         try :

@@ -36,3 +36,4 @@ autopep8==2.0.2
 pycodestyle==2.10.0
 cassandra-driver==3.24.0
 cryptography==35.0.0
+mysql-connector-python==8.0.27

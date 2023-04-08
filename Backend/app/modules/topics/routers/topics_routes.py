@@ -38,3 +38,28 @@ async def restart_connector(connector_name: str):
 async def delete_connector(connector_name: str):
     return topics_controller.delete_connector(connector_name)
 
+@router.post('/cassandra_to_sql', response_model=dict)
+async def cassandra_to_sql(table_name: str):
+    return topics_controller.cassandra_to_sql(table_name)
+
+@router.get('/get_subscribers', response_model=dict)
+async def get_subscribers():
+    return topics_controller.get_subscribers()
+
+
+@router.get('/get_subscribers_by_city', response_model=dict)
+async def get_subscribers(city: str):
+    return topics_controller.get_subscribers_by_city(city)
+
+@router.post('/add_subscriber', response_model=dict)
+async def add_subscriber(request: dict):
+    email = request["email"]
+    city = request["city"]
+    return topics_controller.add_subscriber(email, city)
+
+@router.delete('/delete_subscriber', response_model=dict)
+async def delete_subscriber(request: dict):
+    email = request["email"]
+    city = request["city"]
+    return topics_controller.delete_subscriber(email, city)
+
