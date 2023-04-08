@@ -57,16 +57,7 @@ function HomeHeader({ defaultWeahter }) {
         />
         <h6 className="category category-absolute">
           Designed and coded by{" "}
-          <a
-            href="https://www.creative-tim.com?ref=pkr-index-page"
-            target="_blank"
-          >
-            <img
-              alt="..."
-              className="creative-tim-logo"
-              src={require("assets/img/creative-tim-white-slim2.png")}
-            />
-          </a>
+         2IDL1 Students         
         </h6>
       </div>
     </>
