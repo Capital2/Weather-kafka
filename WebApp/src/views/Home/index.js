@@ -12,11 +12,6 @@ import useKafkaConsumer from "hooks/useKafkaConsumer";
 import { useAppState } from "hooks/useAppContext";
 import Skeleton from "react-loading-skeleton";
 
-import {
-  weather as weatherFake,
-  forecast as forecastFake,
-  alerts as alertsFake,
-} from "data/fakeOpenWeatherAPIData";
 
 const Home = () => {
   // States required for the different components
@@ -127,7 +122,7 @@ const Home = () => {
         unsubscribe([...topics_names]);
       }
     };
-  }, [subscribe, unsubscribe]);
+  }, [subscribe]);
 
   const onSearchChange = (searchDataValue) => {
     // Extracting the latitude and longitude from the searchDataValue
@@ -145,6 +140,10 @@ const Home = () => {
         if (subscriptionsTracker.indexOf(data.topic_name) === -1) {
           subscribe([data.topic_name]);
           setSubscriptionsTracker([...subscriptionsTracker, data.topic_name]);
+          // Display to the user loading screens
+          setCurrentWeather(null);
+          setForecast(null);
+          setAlertWeather(null);
         } else {
           // The user is already subscribed to the topic data.topic_name
           // Check if we have already pulled data realted to that topic (old data stored in the messages array)
@@ -170,7 +169,7 @@ const Home = () => {
           }
         }
         // If new data came for that topic it will displayed immediatly
-        console.log("Search HTTP call")
+        console.log("Search HTTP response")
         console.log(data.topic_name)
         setSearchingFor({ ...searchDataValue, topicName: data.topic_name });
       })
@@ -182,15 +181,54 @@ const Home = () => {
     // We are always subscribed to our default city when the component mounts !!!
     if (searchingFor && searchingFor.topicName !== defaultTopic) {
       setSubscriptions([...subscriptions, searchingFor.topicName]);
+
+      fetch(`http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/add_subscriber/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, city: defaultTopic })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log("user email subscribed successfully")
+        })
+        .catch(error => {
+          // handle error
+          console.error("Error occured while sending the user email")
+        });
     }
+
+
   };
 
   const handleUnSubscribe = () => {
     if (searchingFor) {
+      // Manage the subscriotions (array that I use to load the topics from locaStorage to perform auto subscriptions)
       let tmpSubscriptions = subscriptions.filter(
         (subscription) => subscription !== searchingFor.topicName
       );
       setSubscriptions(tmpSubscriptions);
+
+      // Unsubscribe from the socket
+      unsubscribe([searchingFor.topicName])
+
+      
+      fetch(`http://${process.env.REACT_APP_BACKEND_IP}:${process.env.REACT_APP_BACKEND_PORT}/topics/delete_subscriber/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, city: defaultTopic })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log("user unsubscribed successfully")
+        })
+        .catch(error => {
+          // handle error
+          console.error("Error while unsbscribing")
+        });
     }
   };
 
@@ -216,27 +254,28 @@ const Home = () => {
         setNewNotifications(newNotifications + messages[messages["lastTopicUpdated"]].alerts.length);
       }
 
-      // Update the current, forecast and map component section
-      if (searchingFor !== null && messages[searchingFor.topicName]) {
-        setCurrentWeather({
+
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    // Update the current, forecast and map component section
+    if (searchingFor !== null && messages[searchingFor.topicName]) {
+      setCurrentWeather({
+        cityLabel: searchingFor.label,
+        ...messages[searchingFor.topicName].weather,
+      });
+      setForecast({ cityLabel: searchingFor.label, ...messages[searchingFor.topicName].forecast });
+      (typeof (messages[searchingFor.topicName].alerts) !== "string") ? (setAlertWeather({ cityLabel: searchingFor.label, ...messages[searchingFor.topicName].alerts })) : (setAlertWeather({ cityLabel: searchingFor.label, ...[] }))
+      // Check if the message that we receive belongs to the user's default city to update the home header component
+      if (searchingFor.topicName === defaultTopic) {
+        setDefaultWeather({
           cityLabel: searchingFor.label,
           ...messages[searchingFor.topicName].weather,
         });
-        setForecast({ cityLabel: searchingFor.label, ...messages[searchingFor.topicName].forecast });
-        (typeof (messages[searchingFor.topicName].alerts) !== "string") ? (setAlertWeather({ cityLabel: searchingFor.label, ...messages[searchingFor.topicName].alerts })) : (setAlertWeather({ cityLabel: searchingFor.label, ...[] }))
-        // Check if the message that we receive belongs to the user's default city to update the home header component
-        if (searchingFor.topicName === defaultTopic) {
-          setDefaultWeather({
-            cityLabel: searchingFor.label,
-            ...messages[searchingFor.topicName].weather,
-          });
-        }
       }
-
-
     }
-  }, [messages, searchingFor]);
-
+  }, [messages, searchingFor])
 
   return (
     <>
@@ -259,8 +298,6 @@ const Home = () => {
               <Button
                 className="btn-round"
                 color="danger"
-                href="/nucleo-icons"
-                target="_blank"
                 onClick={handleSubscribe}
                 disabled={
                   searchingFor != null &&
@@ -273,15 +310,9 @@ const Home = () => {
               <Button
                 className="btn-round ml-1"
                 color="danger"
-                href="https://nucleoapp.com/?ref=1712"
                 outline
-                target="_blank"
                 onClick={handleUnSubscribe}
-                disabled={
-                  searchingFor != null &&
-                  (subscriptions.indexOf(searchingFor.topicName) === -1 ||
-                    searchingFor.topicName === defaultTopic)
-                }
+                disabled={searchingFor != null && searchingFor.topicName === defaultTopic}
               >
                 Unsubscribe
               </Button>
